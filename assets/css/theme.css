@@ -1,0 +1,162 @@
+/* assets/css/theme.css */
+/* 
+ * Main Theme Stylesheet
+ * This file defines the core design tokens (colors, fonts, shadows) and basic component 
+ * styles used across the entire application, including landing pages and dashboards. 
+ * It sets up CSS variables for Light, Dark, and Colorblind themes.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* DEFAULT: Light Mode (Soft Healthcare Colors) */
+    --bg-color: #f0f4f8;
+    --card-bg: #ffffff;
+    --text-primary: #1a202c;
+    --text-secondary: #718096;
+    
+    --primary-color: #2b6cb0; /* Soft Blue */
+    --primary-hover: #2c5282;
+    --secondary-color: #38a169; /* Soft Green */
+    --secondary-hover: #2f855a;
+    --accent-color: #3182ce;
+    
+    --input-bg: #f7fafc;
+    --input-border: #e2e8f0;
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
+    
+    --border-radius: 12px;
+    --transition-speed: 0.3s;
+}
+
+[data-theme="dark"] {
+    /* Dark Mode (Deep Navy, Charcoal, Teal Highlights) */
+    --bg-color: #0f172a; /* Deep Navy */
+    --card-bg: #1e293b; /* Charcoal */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    
+    --primary-color: #14b8a6; /* Teal */
+    --primary-hover: #0d9488;
+    --secondary-color: #3b82f6;
+    --secondary-hover: #2563eb;
+    --accent-color: #0ea5e9;
+    
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.3);
+}
+
+[data-theme="colorblind"] {
+    /* Color-Blind Mode (Pastel Tones with Clear Contrast: Orange, Teal, Purple) */
+    --bg-color: #fffaf0;
+    --card-bg: #ffffff;
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    
+    --primary-color: #ed8936; /* High contrast Orange */
+    --primary-hover: #dd6b20;
+    --secondary-color: #805ad5; /* High contrast Purple */
+    --secondary-hover: #6b46c1;
+    --accent-color: #319795; /* Teal */
+    
+    --input-bg: #ffffff;
+    --input-border: #cbd5e0;
+    
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed), transform var(--transition-speed);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Global Button Styles */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: var(--border-radius);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition-speed);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Inputs */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.2);
+}
+
+/* Theme Switcher Wrapper */
+.theme-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.theme-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.theme-btn:hover {
+    background: var(--input-bg);
+}
