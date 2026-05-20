@@ -3,10 +3,10 @@
 // This file is responsible for establishing the connection to the MySQL database.
 
 // Database configuration variables
-$host = 'sql313.infinityfree.com';
-$dbname = 'if0_41978613_mpes_db';
-$username = 'if0_41978613'; // default xampp/mamp username
-$password = 'e7U4owDUtjRdH'; // default xampp/mamp password
+$host = "sql313.infinityfree.com";
+$dbname = "if0_41978613_mpes_db";
+$username = "if0_41978613";
+$password = "e7U4owDUtjRdH";
 
 try {
     // Attempt to create a new PDO instance for database connection
