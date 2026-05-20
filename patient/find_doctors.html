@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<!-- 
+  patient/find_doctors.html 
+  Advanced search interface for finding medical specialists. Supports filtering by 
+  specialty, hospital, rating, and fee with interactive result cards.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Doctors | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        .section-heading{font-size:1.02rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .section-heading i{color:var(--primary-color)}
+        /* Engaging search hero area with glassmorphism effects */
+        .search-hero{background:linear-gradient(135deg,#2b6cb0,#1a365d);border-radius:16px;padding:32px;color:#fff;margin-bottom:26px;text-align:center}
+        [data-theme="colorblind"] .search-hero{background:linear-gradient(135deg,#ed8936,#c05621)}
+        .search-hero h2{font-size:1.5rem;margin:0 0 8px}
+        .search-hero p{opacity:.85;margin:0 0 20px;font-size:.9rem}
+        .hero-search-row{display:flex;gap:10px;flex-wrap:wrap;max-width:700px;margin:0 auto}
+        .hero-search-row input,.hero-search-row select{flex:1;min-width:140px;padding:12px 18px;border-radius:10px;border:none;outline:none;font-size:.9rem;background:rgba(255,255,255,.15);color:#fff;backdrop-filter:blur(6px)}
+        .hero-search-row input::placeholder{color:rgba(255,255,255,.65)}
+        .hero-search-row select option{color:#333}
+        .hero-search-row button{padding:12px 24px;background:#fff;color:#2b6cb0;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem;transition:transform .2s}
+        .hero-search-row button:hover{transform:scale(1.04)}
+        .specialty-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+        .spec-chip{padding:7px 16px;border-radius:20px;border:1px solid var(--input-border);background:var(--card-bg);color:var(--text-secondary);font-size:.83rem;cursor:pointer;transition:all .2s;font-weight:500}
+        .spec-chip:hover,.spec-chip.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color)}
+        .doctors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px}
+        .doc-card{background:var(--card-bg);border:1px solid var(--input-border);border-radius:16px;padding:22px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s;text-align:center;position:relative}
+        .doc-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md)}
+        .doc-card .avail-dot{position:absolute;top:18px;right:18px;width:10px;height:10px;border-radius:50%;background:#38a169;box-shadow:0 0 6px #38a169}
+        .doc-card .avail-dot.busy{background:#e53e3e;box-shadow:0 0 6px #e53e3e}
+        .doc-img-wrap{position:relative;display:inline-block;margin-bottom:14px}
+        .doc-img-wrap img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-color)}
+        .doc-img-wrap .badge-spec{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);background:var(--primary-color);color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap}
+        .doc-card h3{font-size:1rem;margin:0 0 4px}
+        .doc-card .doc-meta{font-size:.8rem;color:var(--text-secondary);margin:0 0 8px}
+        .doc-card .rating{font-size:.8rem;margin-bottom:6px}
+        .doc-card .rating i{color:#f6ad55}
+        .doc-card .fee-exp{display:flex;justify-content:center;gap:14px;font-size:.8rem;color:var(--text-secondary);margin-bottom:14px}
+        .doc-card .fee-exp strong{color:var(--text-primary)}
+        .doc-card-actions{display:flex;gap:8px}
+        .doc-card-actions button,.doc-card-actions a{flex:1;padding:9px;border-radius:8px;border:none;font-weight:600;cursor:pointer;font-size:.82rem;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+        .btn-book-doc{background:var(--primary-color);color:#fff}
+        .btn-book-doc:hover{background:var(--primary-hover);transform:translateY(-2px)}
+        .btn-profile-doc{background:var(--input-bg);color:var(--text-primary);border:1px solid var(--input-border)!important}
+        .btn-profile-doc:hover{border-color:var(--primary-color)!important;color:var(--primary-color)}
+        .results-info{font-size:.88rem;color:var(--text-secondary);margin-bottom:14px}
+        .empty-state{text-align:center;padding:50px 20px;color:var(--text-secondary)}
+        .empty-state i{font-size:3rem;margin-bottom:14px;opacity:.3}
+        .sort-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+        .sort-bar select{padding:8px 14px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.85rem;outline:none}
+    </style>
+</head>
+<body class="dashboard-body">
+
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html" class="active"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Find Doctors</h1><p>Patient Portal / Find Doctors</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient">
+                <span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <!-- Search Hero -->
+        <div class="search-hero">
+            <h2><i class="fa-solid fa-user-doctor"></i> Find Your Doctor</h2>
+            <p>Search from 10,700+ verified specialists across 680+ hospitals</p>
+            <div class="hero-search-row">
+                <input type="text" id="heroSearch" placeholder="Doctor name or condition...">
+                <select id="heroSpecialty">
+                    <option value="">All Specialists</option>
+                    <option>Cardiologist</option><option>Neurologist</option><option>Dermatologist</option>
+                    <option>General Physician</option><option>Orthopedic</option><option>Pediatrician</option>
+                    <option>Gynecologist</option><option>Psychiatrist</option><option>Ophthalmologist</option>
+                </select>
+                <select id="heroHospital">
+                    <option value="">All Hospitals</option>
+                    <option>City Hospital</option><option>Apollo Hospital</option>
+                    <option>Metro Medical</option><option>LifeCare Clinic</option>
+                </select>
+                <button onclick="filterDocs()"><i class="fa-solid fa-search"></i> Search</button>
+            </div>
+        </div>
+
+        <!-- Specialty Chips -->
+        <div class="specialty-chips" id="specChips"></div>
+
+        <!-- Sort + Results Count -->
+        <div class="sort-bar">
+            <span class="results-info" id="resultsInfo" style="margin:0;"></span>
+            <select id="sortBy" style="margin-left:auto;" onchange="filterDocs()">
+                <option value="rating">Sort: Top Rated</option>
+                <option value="fee_asc">Sort: Fee Low→High</option>
+                <option value="fee_desc">Sort: Fee High→Low</option>
+                <option value="experience">Sort: Most Experienced</option>
+            </select>
+            <select id="availFilter" onchange="filterDocs()">
+                <option value="">All Availability</option>
+                <option value="available">Available Now</option>
+                <option value="busy">Busy</option>
+            </select>
+        </div>
+
+        <!-- Doctor Grid -->
+        <div class="doctors-grid" id="doctorGrid"></div>
+    </main>
+</div>
+
+<!-- Book Modal -->
+<div class="modal-overlay" id="bookModal">
+    <div class="modal-box">
+        <h3 style="margin-bottom:18px;"><i class="fa-solid fa-calendar-plus" style="color:var(--primary-color);"></i> Book Appointment</h3>
+        <div id="bookDocPreview" style="display:flex;align-items:center;gap:14px;background:var(--input-bg);border-radius:12px;padding:14px;margin-bottom:18px;"></div>
+        <div class="form-group"><label>Preferred Date</label><input type="date" class="form-control" id="bookDate"></div>
+        <div class="form-group"><label>Time Slot</label>
+            <select class="form-control" id="bookTime">
+                <option>09:00 AM</option><option>09:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+                <option>11:00 AM</option><option>02:00 PM</option><option>02:30 PM</option><option>03:00 PM</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Reason</label><input type="text" class="form-control" placeholder="Brief reason for visit..."></div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-primary w-100" onclick="confirmBooking()"><i class="fa-solid fa-check"></i> Confirm</button>
+            <button class="btn btn-outline" onclick="document.getElementById('bookModal').classList.remove('open')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Doctor Profile Modal -->
+<div class="modal-overlay" id="profileModal">
+    <div class="modal-box" style="max-width:560px;">
+        <div id="docProfileContent"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-primary w-100" id="profileBookBtn"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</button>
+            <button class="btn btn-outline" onclick="document.getElementById('profileModal').classList.remove('open')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{const t=btn.dataset.setTheme;html.setAttribute('data-theme',t);localStorage.setItem('mpes-theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+const sidebar=document.getElementById('sidebar'),mainWrapper=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{
+    if(window.innerWidth<=768)sidebar.classList.toggle('mobile-open');
+    else{sidebar.classList.toggle('collapsed');mainWrapper.classList.toggle('sidebar-collapsed');}
+});
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
+
+let activeSpec = 'All';
+let bookingDoc = null;
+let debounceTimer = null;
+
+// Star rating renderer helper
+function starRating(r) {
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+        s += `<i class="fa-solid fa-star" style="color:${i <= Math.round(r) ? '#f6ad55' : '#e2e8f0'};"></i>`;
+    }
+    return s;
+}
+
+// Function to open booking modal
+function openBook(doc) {
+    bookingDoc = doc;
+    document.getElementById('bookDocPreview').innerHTML = `
+        <img src="${doc.img}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-color);">
+        <div>
+            <strong>${doc.name}</strong>
+            <div style="font-size:.8rem;color:var(--text-secondary);">${doc.specialty} · ${doc.hospital} · ৳${doc.fee}/visit</div>
+        </div>`;
+    document.getElementById('bookModal').classList.add('open');
+    document.getElementById('profileModal').classList.remove('open');
+}
+
+// Function to open doctor profile modal
+function openProfile(doc) {
+    document.getElementById('docProfileContent').innerHTML = `
+        <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
+            <img src="${doc.img}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-color);">
+            <div>
+                <h3 style="margin:0 0 4px;">${doc.name}</h3>
+                <div style="font-size:.85rem;color:var(--text-secondary);">${doc.specialty} · ${doc.hospital}</div>
+                <div style="font-size:.82rem;margin-top:6px;">${starRating(doc.rating)} <span style="color:var(--text-secondary);">${doc.rating.toFixed(1)} (${doc.reviews} reviews)</span></div>
+            </div>
+        </div>
+        <p style="font-size:.88rem;color:var(--text-secondary);margin-bottom:16px;">${doc.bio || 'No bio available.'}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+            <div style="background:var(--input-bg);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-weight:700;color:var(--primary-color);">৳${doc.fee}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">Per Visit</div>
+            </div>
+            <div style="background:var(--input-bg);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-weight:700;color:var(--primary-color);">${doc.experience}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">Experience</div>
+            </div>
+            <div style="background:var(--input-bg);border-radius:10px;padding:12px;text-align:center;">
+                <div style="font-weight:700;color:${doc.available ? '#38a169' : '#e53e3e'};">${doc.available ? 'Available' : 'Busy'}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">Status</div>
+            </div>
+        </div>`;
+    document.getElementById('profileBookBtn').onclick = () => openBook(doc);
+    document.getElementById('profileModal').classList.add('open');
+}
+
+// Function to confirm booking via SQL backend
+async function confirmBooking() {
+    const date = document.getElementById('bookDate').value;
+    const time = document.getElementById('bookTime').value;
+    const reasonInput = document.querySelector('#bookModal input[placeholder*="Reason"]');
+    const notes = reasonInput ? reasonInput.value : '';
+
+    if (!date || !time) {
+        alert("Please select a valid date and time.");
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('action', 'book_appointment');
+        formData.append('doctor_id', bookingDoc.id);
+        formData.append('date', date);
+        formData.append('time', time);
+        formData.append('notes', notes);
+
+        const response = await fetch('../api/crud.php', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`✅ Appointment Confirmed!\nDoctor: ${bookingDoc.name}\nSerial: ${data.serial}\nDate: ${date}\nTime: ${time}`);
+            document.getElementById('bookModal').classList.remove('open');
+            if (reasonInput) reasonInput.value = '';
+        } else {
+            alert(`❌ Booking failed: ${data.message}`);
+        }
+    } catch (err) {
+        console.error("Booking error:", err);
+        alert("❌ Failed to book appointment due to a connection error.");
+    }
+}
+
+// Function to fetch filter options from SQL database dynamically
+async function loadFilters() {
+    try {
+        const response = await fetch('../api/search_doctors.php?get_filters=1');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Populate Specialty Chips
+            const specialties = ['All', ...data.specialties];
+            const chipContainer = document.getElementById('specChips');
+            chipContainer.innerHTML = '';
+            
+            // Limit to first 12 active specialties as chips for aesthetics
+            specialties.slice(0, 12).forEach(s => {
+                const chip = document.createElement('div');
+                chip.className = 'spec-chip' + (s === activeSpec ? ' active' : '');
+                chip.textContent = s;
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.spec-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    activeSpec = s;
+                    document.getElementById('heroSpecialty').value = s === 'All' ? '' : s;
+                    filterDocs();
+                });
+                chipContainer.appendChild(chip);
+            });
+            
+            // Populate Specialty Dropdown
+            const specSelect = document.getElementById('heroSpecialty');
+            specSelect.innerHTML = '<option value="">All Specialists</option>';
+            data.specialties.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                specSelect.appendChild(opt);
+            });
+            
+            // Populate Hospital Dropdown
+            const hospSelect = document.getElementById('heroHospital');
+            hospSelect.innerHTML = '<option value="">All Hospitals</option>';
+            data.hospitals.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h.id;
+                opt.textContent = h.name;
+                hospSelect.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error("Error loading filters:", err);
+    }
+}
+
+// Function to search/filter doctors via PHP search API
+async function filterDocs() {
+    const resultsInfo = document.getElementById('resultsInfo');
+    const doctorGrid = document.getElementById('doctorGrid');
+    
+    resultsInfo.textContent = 'Searching...';
+    doctorGrid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1 / -1">
+            <i class="fa-solid fa-spinner fa-spin" style="opacity: 1; color: var(--primary-color);"></i>
+            <p>Fetching matching doctors from database...</p>
+        </div>`;
+
+    const q = document.getElementById('heroSearch').value;
+    const sp = document.getElementById('heroSpecialty').value;
+    const hp = document.getElementById('heroHospital').value;
+    const sort = document.getElementById('sortBy').value;
+    const avail = document.getElementById('availFilter').value;
+
+    const url = new URL('../api/search_doctors.php', window.location.href);
+    if (q) url.searchParams.append('search', q);
+    if (sp) url.searchParams.append('specialty', sp);
+    if (hp) url.searchParams.append('hospital', hp);
+    if (sort) url.searchParams.append('sort', sort);
+    if (avail) url.searchParams.append('available', avail);
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.success) {
+            const list = data.doctors || [];
+            resultsInfo.textContent = `Showing ${list.length} doctor${list.length !== 1 ? 's' : ''}`;
+            
+            doctorGrid.innerHTML = list.length ? list.map(d => `
+                <div class="doc-card">
+                    <div class="avail-dot ${d.available ? '' : 'busy'}"></div>
+                    <div class="doc-img-wrap">
+                        <img src="${d.img}" alt="${d.name}">
+                        <div class="badge-spec">${d.specialty}</div>
+                    </div>
+                    <h3>${d.name}</h3>
+                    <p class="doc-meta">${d.hospital || 'General Clinic'}</p>
+                    <div class="rating">${starRating(d.rating)} <span style="color:var(--text-secondary);">${d.rating.toFixed(1)} (${d.reviews})</span></div>
+                    <div class="fee-exp">
+                        <div><strong>৳${d.fee}</strong><div>Per visit</div></div>
+                        <div><strong>${d.experience}</strong><div>Experience</div></div>
+                    </div>
+                    <div class="doc-card-actions">
+                        <button class="btn-profile-doc" onclick='openProfile(${JSON.stringify(d).replace(/'/g, "&#39;")})'><i class="fa-solid fa-user"></i> Profile</button>
+                        <button class="btn-book-doc" onclick='openBook(${JSON.stringify(d).replace(/'/g, "&#39;")})'><i class="fa-solid fa-calendar-plus"></i> Book</button>
+                    </div>
+                </div>`).join('') : `
+                <div class="empty-state" style="grid-column: 1 / -1">
+                    <i class="fa-solid fa-user-doctor"></i>
+                    <p>No doctors found matching your search.</p>
+                </div>`;
+        } else {
+            resultsInfo.textContent = 'Search failed';
+            doctorGrid.innerHTML = `
+                <div class="empty-state" style="grid-column: 1 / -1">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--danger-color); opacity: 1;"></i>
+                    <p>Error: ${data.message}</p>
+                </div>`;
+        }
+    } catch (err) {
+        console.error("Search error:", err);
+        resultsInfo.textContent = 'Connection error';
+        doctorGrid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1">
+                <i class="fa-solid fa-wifi" style="opacity: 0.3;"></i>
+                <p>Unable to connect to the search service.</p>
+            </div>`;
+    }
+}
+
+// Load metadata and execute initial query
+loadFilters().then(() => {
+    filterDocs();
+});
+
+// Event Listeners with Debounce for high performance
+document.getElementById('heroSearch').addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(filterDocs, 300);
+});
+document.getElementById('heroSpecialty').addEventListener('change', filterDocs);
+document.getElementById('heroHospital').addEventListener('change', filterDocs);
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+
