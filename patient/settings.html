@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<!-- 
+  patient/settings.html 
+  Application-wide preferences for patients. Manages appearance, 
+  notification triggers, privacy settings, and regional preferences.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        .section-heading{font-size:1.05rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--input-border)}
+        .section-heading i{color:var(--primary-color)}
+        /* Two-column settings layout with sticky navigation */
+        .settings-grid{display:grid;grid-template-columns:250px 1fr;gap:24px;align-items:start}
+        @media(max-width:850px){.settings-grid{grid-template-columns:1fr}}
+        
+        .settings-nav{background:var(--card-bg);border:1px solid var(--input-border);border-radius:12px;padding:12px;position:sticky;top:85px;box-shadow:var(--shadow-sm)}
+        .setting-nav-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;color:var(--text-secondary);font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;margin-bottom:4px}
+        .setting-nav-btn:hover{background:rgba(43,108,176,0.05);color:var(--primary-color)}
+        .setting-nav-btn.active{background:var(--primary-color);color:#fff}
+        
+        .settings-pane{display:none;background:var(--card-bg);border:1px solid var(--input-border);border-radius:12px;padding:24px;box-shadow:var(--shadow-sm)}
+        .settings-pane.active{display:block;animation:fadeIn 0.3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+        .setting-row{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid var(--input-border)}
+        .setting-row:last-child{border-bottom:none;padding-bottom:0}
+        .setting-info h4{margin:0 0 4px;font-size:0.95rem}
+        .setting-info p{margin:0;font-size:0.8rem;color:var(--text-secondary)}
+        
+        /* Toggle Switch */
+        .toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+        .toggle-switch input{opacity:0;width:0;height:0}
+        .toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:var(--input-border);transition:.3s;border-radius:24px}
+        .toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:#fff;transition:.3s;border-radius:50%}
+        input:checked + .toggle-slider{background-color:var(--primary-color)}
+        input:checked + .toggle-slider:before{transform:translateX(20px)}
+
+        /* Radio theme cards */
+        .theme-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-top:14px}
+        .theme-card{border:2px solid var(--input-border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--input-bg)}
+        .theme-card:hover{border-color:var(--primary-color)}
+        .theme-card.active{border-color:var(--primary-color);background:rgba(43,108,176,0.05)}
+        .theme-preview{height:60px;border-radius:6px;margin-bottom:10px;border:1px solid rgba(0,0,0,0.1)}
+        .tc-light{background:#f0f4f8}
+        .tc-dark{background:#1a202c}
+        .tc-colorblind{background:linear-gradient(135deg,#f0f4f8 50%,#ed8936 50%)}
+        .theme-card span{font-size:0.85rem;font-weight:600}
+
+    </style>
+</head>
+<body class="dashboard-body">
+
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html" class="active"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Settings</h1><p>Patient Portal / Preferences</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient">
+                <span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="settings-grid">
+            
+            <!-- Settings Nav -->
+            <div class="settings-nav">
+                <div class="setting-nav-btn active" onclick="switchSetTab('appearance', this)"><i class="fa-solid fa-palette"></i> Appearance</div>
+                <div class="setting-nav-btn" onclick="switchSetTab('notifications', this)"><i class="fa-solid fa-bell"></i> Notifications</div>
+                <div class="setting-nav-btn" onclick="switchSetTab('privacy', this)"><i class="fa-solid fa-shield"></i> Privacy & Data</div>
+                <div class="setting-nav-btn" onclick="switchSetTab('language', this)"><i class="fa-solid fa-language"></i> Language</div>
+                <hr style="border:0;border-top:1px solid var(--input-border);margin:10px 0;">
+                <a href="../logout.php" class="setting-nav-btn danger" style="color:#e53e3e;text-decoration:none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                
+                <!-- Appearance -->
+                <div class="settings-pane active" id="set-appearance">
+                    <div class="section-heading"><i class="fa-solid fa-palette"></i> Theme Preferences</div>
+                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">Customize the look and feel of your dashboard.</p>
+                    
+                    <div class="theme-options">
+                        <div class="theme-card active" id="tc-light" onclick="forceTheme('light')">
+                            <div class="theme-preview tc-light"></div>
+                            <span>Light Mode</span>
+                        </div>
+                        <div class="theme-card" id="tc-dark" onclick="forceTheme('dark')">
+                            <div class="theme-preview tc-dark"></div>
+                            <span>Dark Mode</span>
+                        </div>
+                        <div class="theme-card" id="tc-colorblind" onclick="forceTheme('colorblind')">
+                            <div class="theme-preview tc-colorblind"></div>
+                            <span>Color-Blind Safe</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-row" style="margin-top:24px;">
+                        <div class="setting-info">
+                            <h4>Compact Sidebar</h4>
+                            <p>Collapse sidebar by default on desktop screens.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div class="settings-pane" id="set-notifications">
+                    <div class="section-heading"><i class="fa-solid fa-bell"></i> Notification Settings</div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Appointment Reminders</h4>
+                            <p>Receive SMS and email reminders 24 hours before your appointment.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Prescription Refills</h4>
+                            <p>Get notified when an active prescription is running low.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Test Report Updates</h4>
+                            <p>Receive alerts when lab test results are ready to view.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Marketing & Newsletter</h4>
+                            <p>Occasional emails about new features and health tips.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Privacy -->
+                <div class="settings-pane" id="set-privacy">
+                    <div class="section-heading"><i class="fa-solid fa-shield"></i> Privacy & Data Sharing</div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Share Medical History with Doctors</h4>
+                            <p>Allow booked doctors to view your full medical history and past prescriptions.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Location Services</h4>
+                            <p>Allow MPES to use your location to find nearby hospitals and ambulances.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Analytics Data</h4>
+                            <p>Share anonymous usage data to help us improve the platform.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-row" style="flex-direction:column;gap:10px;align-items:flex-start;">
+                        <div class="setting-info">
+                            <h4 style="color:#e53e3e;">Danger Zone</h4>
+                            <p>Permanently delete your account and all associated medical records.</p>
+                        </div>
+                        <button class="btn btn-outline" style="border-color:#e53e3e;color:#e53e3e;" onclick="if(confirm('Are you absolutely sure? This cannot be undone.')){alert('Request submitted to support.')}">Delete Account</button>
+                    </div>
+                </div>
+
+                <!-- Language -->
+                <div class="settings-pane" id="set-language">
+                    <div class="section-heading"><i class="fa-solid fa-language"></i> Language & Region</div>
+                    
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:8px;">Display Language</label>
+                        <select class="form-control" style="max-width:300px;">
+                            <option selected>English (US)</option>
+                            <option>Spanish (ES)</option>
+                            <option>French (FR)</option>
+                            <option>Arabic (AR)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);display:block;margin-bottom:8px;">Time Zone</label>
+                        <select class="form-control" style="max-width:300px;">
+                            <option selected>(GMT-05:00) Eastern Time (US & Canada)</option>
+                            <option>(GMT-08:00) Pacific Time (US & Canada)</option>
+                            <option>(GMT+00:00) Greenwich Mean Time (London)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="margin-top:20px;" onclick="alert('Preferences saved!')">Save Preferences</button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+
+// Sync theme switchers on load
+function syncThemeUI(theme) {
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        if(btn.dataset.setTheme === theme) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+    const activeCard = document.getElementById('tc-' + theme);
+    if(activeCard) activeCard.classList.add('active');
+}
+syncThemeUI(saved);
+
+// Setup topbar theme buttons
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const t = btn.dataset.setTheme;
+        html.setAttribute('data-theme', t);
+        localStorage.setItem('mpes-theme', t);
+        syncThemeUI(t);
+    });
+});
+
+const sidebar=document.getElementById('sidebar'),mw=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{if(window.innerWidth<=768)sidebar.classList.toggle('mobile-open');else{sidebar.classList.toggle('collapsed');mw.classList.toggle('sidebar-collapsed');}});
+
+function switchSetTab(tabId, btn) {
+    document.querySelectorAll('.setting-nav-btn').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.settings-pane').forEach(c=>c.classList.remove('active'));
+    document.getElementById('set-'+tabId).classList.add('active');
+}
+
+function forceTheme(t) {
+    html.setAttribute('data-theme',t);
+    localStorage.setItem('mpes-theme',t);
+    syncThemeUI(t);
+}
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+

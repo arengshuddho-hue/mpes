@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!-- 
+  patient/symptom_checker.html 
+  Interactive AI-powered symptom checker. Guides users through a multi-step 
+  assessment to provide health guidance and possible condition matches.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Symptom Checker | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        /* AI branding hero with floating animation */
+        .ai-hero{background:linear-gradient(135deg,#2b6cb0,#1a365d);border-radius:16px;padding:32px;color:#fff;margin-bottom:26px;text-align:center}
+        [data-theme="colorblind"] .ai-hero{background:linear-gradient(135deg,#ed8936,#c05621)}
+        .ai-hero .robot-icon{font-size:3.5rem;margin-bottom:14px;animation:roboFloat 3s ease-in-out infinite}
+        @keyframes roboFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        .ai-hero h2{font-size:1.5rem;margin:0 0 8px}
+        .ai-hero p{opacity:.85;margin:0;font-size:.9rem}
+        .symptom-section{background:var(--card-bg);border:1px solid var(--input-border);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow-sm)}
+        .body-parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+        .body-part-btn{padding:12px;border:2px solid var(--input-border);border-radius:12px;background:var(--card-bg);cursor:pointer;text-align:center;transition:all .2s;font-size:.82rem;font-weight:600;color:var(--text-primary)}
+        .body-part-btn i{font-size:1.4rem;display:block;margin-bottom:6px;color:var(--primary-color)}
+        .body-part-btn:hover,.body-part-btn.active{border-color:var(--primary-color);background:rgba(43,108,176,.08);color:var(--primary-color)}
+        .symptom-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;min-height:40px}
+        .symptom-tag{padding:7px 14px;border:1px solid var(--input-border);border-radius:20px;background:var(--card-bg);cursor:pointer;font-size:.83rem;transition:all .2s;color:var(--text-secondary)}
+        .symptom-tag:hover{border-color:var(--primary-color);color:var(--primary-color)}
+        .symptom-tag.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color)}
+        .selected-symptoms{display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:10px;border:1px dashed var(--input-border);border-radius:10px;background:var(--input-bg);margin-bottom:16px}
+        .sel-tag{background:var(--primary-color);color:#fff;padding:5px 12px;border-radius:20px;font-size:.8rem;display:flex;align-items:center;gap:6px}
+        .sel-tag i{cursor:pointer;opacity:.8}
+        .sel-tag i:hover{opacity:1}
+        .text-input-row{display:flex;gap:10px;margin-bottom:16px}
+        .text-input-row input{flex:1;padding:12px 16px;border:1px solid var(--input-border);border-radius:10px;background:var(--input-bg);color:var(--text-primary);font-size:.9rem;outline:none}
+        .text-input-row input:focus{border-color:var(--primary-color)}
+        .ai-result-box{background:linear-gradient(135deg,rgba(43,108,176,.08),rgba(26,54,93,.04));border:1px solid rgba(43,108,176,.2);border-radius:16px;padding:24px;display:none;animation:fadeIn .5s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .ai-result-box.show{display:block}
+        .severity-bar{height:12px;border-radius:6px;background:var(--input-border);margin:10px 0}
+        .severity-fill{height:100%;border-radius:6px;transition:width 1.5s ease}
+        .condition-card{background:var(--card-bg);border:1px solid var(--input-border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px}
+        .condition-prob{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88rem;flex-shrink:0;border:3px solid}
+        .prob-high{border-color:#e53e3e;color:#e53e3e;background:rgba(229,62,62,.08)}
+        .prob-med{border-color:#ed8936;color:#ed8936;background:rgba(237,137,54,.08)}
+        .prob-low{border-color:#38a169;color:#38a169;background:rgba(56,161,105,.08)}
+        .condition-info h4{margin:0 0 4px;font-size:.95rem}
+        .condition-info p{margin:0;font-size:.82rem;color:var(--text-secondary)}
+        .recommendation-box{background:rgba(56,161,105,.08);border:1px solid rgba(56,161,105,.2);border-radius:12px;padding:16px;margin-top:16px}
+        .recommendation-box h4{color:#38a169;margin:0 0 10px;font-size:.95rem}
+        .recommendation-box ul{margin:0;padding-left:20px}
+        .recommendation-box ul li{font-size:.85rem;margin-bottom:6px;color:var(--text-primary)}
+        .history-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--input-border)}
+        .history-item:last-child{border-bottom:none}
+        .loading-dots{display:none;text-align:center;padding:20px}
+        .loading-dots span{width:10px;height:10px;border-radius:50%;background:var(--primary-color);display:inline-block;margin:0 4px;animation:dotBounce .8s ease-in-out infinite}
+        .loading-dots span:nth-child(2){animation-delay:.15s}
+        .loading-dots span:nth-child(3){animation-delay:.3s}
+        @keyframes dotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-12px)}}
+    </style>
+</head>
+<body class="dashboard-body">
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html" class="active"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>AI Symptom Checker</h1><p>Patient Portal / AI Health</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient"><span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="page-content">
+        <!-- Hero -->
+        <div class="ai-hero">
+            <div class="robot-icon">🤖</div>
+            <h2>MPES AI Symptom Checker</h2>
+            <p>Select your symptoms for instant AI-powered health guidance. This is not a medical diagnosis — always consult a doctor.</p>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <!-- Step 1: Body Part -->
+                <div class="symptom-section">
+                    <div style="font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;"><span style="background:var(--primary-color);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;">1</span> Where do you feel discomfort?</div>
+                    <div class="body-parts">
+                        <div class="body-part-btn" onclick="selectPart(this,'Head')"><i class="fa-solid fa-head-side-virus"></i>Head</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Chest')"><i class="fa-solid fa-lungs"></i>Chest</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Abdomen')"><i class="fa-solid fa-circle"></i>Abdomen</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Back')"><i class="fa-solid fa-person"></i>Back</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Limbs')"><i class="fa-solid fa-hand"></i>Limbs</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Skin')"><i class="fa-solid fa-hand-dots"></i>Skin</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Throat')"><i class="fa-solid fa-comment-medical"></i>Throat</div>
+                        <div class="body-part-btn" onclick="selectPart(this,'Eyes')"><i class="fa-solid fa-eye"></i>Eyes</div>
+                    </div>
+
+                    <!-- Step 2: Symptoms -->
+                    <div style="font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;"><span style="background:var(--primary-color);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;">2</span> Select your symptoms</div>
+                    <div class="symptom-tags" id="symptomTags"></div>
+
+                    <!-- Step 3: Selected -->
+                    <div style="font-weight:700;margin-bottom:8px;font-size:.88rem;color:var(--text-secondary);">Selected Symptoms:</div>
+                    <div class="selected-symptoms" id="selectedSymptoms">
+                        <span style="color:var(--text-secondary);font-size:.85rem;align-self:center;">No symptoms selected yet...</span>
+                    </div>
+
+                    <!-- Text input -->
+                    <div class="text-input-row">
+                        <input type="text" id="customSymptom" placeholder="Describe other symptoms in detail...">
+                        <button class="btn btn-outline" onclick="addCustom()"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+
+                    <!-- Duration + Severity -->
+                    <div class="input-row" style="margin-bottom:16px;">
+                        <div class="form-group">
+                            <label>Duration</label>
+                            <select class="form-control" id="duration">
+                                <option>Less than 1 day</option><option>1–3 days</option><option>4–7 days</option><option>1–2 weeks</option><option>More than 2 weeks</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Severity</label>
+                            <select class="form-control" id="severity">
+                                <option value="mild">Mild — I can carry on normally</option>
+                                <option value="moderate">Moderate — It affects my daily life</option>
+                                <option value="severe">Severe — I can barely function</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-100" onclick="runChecker()" id="checkBtn" style="justify-content:center;padding:14px;">
+                        <i class="fa-solid fa-robot"></i> Analyse Symptoms
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <!-- AI Result -->
+                <div class="symptom-section">
+                    <div style="font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;"><span style="background:var(--primary-color);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;">3</span> AI Assessment</div>
+
+                    <div class="loading-dots" id="loadingDots">
+                        <span></span><span></span><span></span>
+                        <p style="color:var(--text-secondary);font-size:.85rem;margin-top:10px;">Analysing your symptoms...</p>
+                    </div>
+
+                    <div id="aiResultPlaceholder" style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                        <i class="fa-solid fa-robot" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:14px;"></i>
+                        <p>Select symptoms and click <strong>Analyse</strong> to get your health assessment.</p>
+                    </div>
+
+                    <div class="ai-result-box" id="aiResult">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                            <div style="font-size:2rem;">🤖</div>
+                            <div><strong>AI Health Assessment</strong><div style="font-size:.8rem;color:var(--text-secondary);">Based on reported symptoms</div></div>
+                            <span class="badge-pill" id="urgencyBadge" style="margin-left:auto;"></span>
+                        </div>
+                        <div style="font-size:.85rem;color:var(--text-secondary);margin-bottom:6px;">Urgency Level</div>
+                        <div class="severity-bar"><div class="severity-fill" id="urgencyBar"></div></div>
+                        <p style="font-size:.88rem;margin-bottom:16px;" id="aiSummary"></p>
+
+                        <div style="font-weight:700;font-size:.9rem;margin-bottom:12px;color:var(--primary-color);">Possible Conditions</div>
+                        <div id="conditionsList"></div>
+
+                        <div class="recommendation-box">
+                            <h4><i class="fa-solid fa-circle-check"></i> Recommendations</h4>
+                            <ul id="recommendationsList"></ul>
+                        </div>
+
+                        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                            <button class="btn btn-primary" onclick="window.location='find_doctors.html'" style="flex:1;justify-content:center;"><i class="fa-solid fa-user-doctor"></i> Find Doctor</button>
+                            <button class="btn btn-outline" onclick="window.location='appointments.html'" style="flex:1;justify-content:center;"><i class="fa-solid fa-calendar-plus"></i> Book Appointment</button>
+                        </div>
+                        <p style="font-size:.75rem;color:var(--text-secondary);margin-top:12px;text-align:center;"><i class="fa-solid fa-circle-info"></i> This is not a medical diagnosis. Always consult a qualified physician.</p>
+                    </div>
+                </div>
+
+                <!-- History -->
+                <div class="symptom-section">
+                    <div style="font-weight:700;margin-bottom:14px;"><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary-color);"></i> Recent Checks</div>
+                    <div class="history-item">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(237,137,54,.1);color:#ed8936;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-head-side-virus"></i></div>
+                        <div style="flex:1"><strong>Headache, Fever, Fatigue</strong><div style="font-size:.78rem;color:var(--text-secondary);">May 14, 2026 · Possible: Viral Infection</div></div>
+                        <span class="badge-pill warning">Moderate</span>
+                    </div>
+                    <div class="history-item">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(56,161,105,.1);color:#38a169;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-lungs"></i></div>
+                        <div style="flex:1"><strong>Cough, Sore Throat</strong><div style="font-size:.78rem;color:var(--text-secondary);">May 8, 2026 · Possible: Common Cold</div></div>
+                        <span class="badge-pill success">Mild</span>
+                    </div>
+                    <div class="history-item">
+                        <div style="width:36px;height:36px;border-radius:50%;background:rgba(229,62,62,.1);color:#e53e3e;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-heart-pulse"></i></div>
+                        <div style="flex:1"><strong>Chest Pain, Shortness of Breath</strong><div style="font-size:.78rem;color:var(--text-secondary);">Apr 25, 2026 · Possible: Anxiety / Stress</div></div>
+                        <span class="badge-pill danger">Urgent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{const t=btn.dataset.setTheme;html.setAttribute('data-theme',t);localStorage.setItem('mpes-theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+document.getElementById('sidebarToggle').addEventListener('click',()=>{const s=document.getElementById('sidebar'),m=document.getElementById('mainWrapper');if(window.innerWidth<=768)s.classList.toggle('mobile-open');else{s.classList.toggle('collapsed');m.classList.toggle('sidebar-collapsed');}});
+
+const SYMPTOM_MAP={
+    'Head':['Headache','Migraine','Dizziness','Blurred Vision','Memory Loss','Confusion'],
+    'Chest':['Chest Pain','Shortness of Breath','Palpitations','Cough','Wheezing','Tightness'],
+    'Abdomen':['Nausea','Vomiting','Diarrhea','Constipation','Bloating','Stomach Pain','Loss of Appetite'],
+    'Back':['Lower Back Pain','Upper Back Pain','Stiffness','Muscle Spasm'],
+    'Limbs':['Joint Pain','Swelling','Numbness','Weakness','Cramps','Tingling'],
+    'Skin':['Rash','Itching','Redness','Dry Skin','Hives','Acne'],
+    'Throat':['Sore Throat','Difficulty Swallowing','Hoarseness','Swollen Glands'],
+    'Eyes':['Eye Pain','Redness','Watery Eyes','Itchy Eyes','Double Vision'],
+};
+const GENERAL_SYMPTOMS=['Fever','Fatigue','Chills','Night Sweats','Weight Loss','Anxiety'];
+let selectedSymptoms=new Set();
+let activePart=null;
+
+function selectPart(el,part){
+    document.querySelectorAll('.body-part-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    activePart=part;
+    const tags=document.getElementById('symptomTags');
+    const syms=[...(SYMPTOM_MAP[part]||[]),...GENERAL_SYMPTOMS];
+    tags.innerHTML=syms.map(s=>`<div class="symptom-tag ${selectedSymptoms.has(s)?'active':''}" onclick="toggleSym(this,'${s}')">${s}</div>`).join('');
+}
+
+function toggleSym(el,sym){
+    if(selectedSymptoms.has(sym)){selectedSymptoms.delete(sym);el.classList.remove('active');}
+    else{selectedSymptoms.add(sym);el.classList.add('active');}
+    renderSelected();
+}
+
+function renderSelected(){
+    const c=document.getElementById('selectedSymptoms');
+    if(!selectedSymptoms.size){c.innerHTML=`<span style="color:var(--text-secondary);font-size:.85rem;align-self:center;">No symptoms selected yet...</span>`;return;}
+    c.innerHTML=[...selectedSymptoms].map(s=>`<div class="sel-tag">${s}<i class="fa-solid fa-xmark" onclick="removeSym('${s}')"></i></div>`).join('');
+}
+
+function removeSym(sym){
+    selectedSymptoms.delete(sym);
+    document.querySelectorAll('.symptom-tag').forEach(t=>{if(t.textContent===sym)t.classList.remove('active');});
+    renderSelected();
+}
+
+function addCustom(){
+    const inp=document.getElementById('customSymptom');
+    if(inp.value.trim()){selectedSymptoms.add(inp.value.trim());renderSelected();inp.value='';}
+}
+document.getElementById('customSymptom').addEventListener('keypress',e=>{if(e.key==='Enter')addCustom();});
+
+const CONDITIONS_DB={
+    mild:[{name:'Common Cold',prob:'72%',cls:'prob-high',desc:'Viral upper respiratory infection. Usually resolves in 7–10 days.'},{name:'Seasonal Allergy',prob:'45%',cls:'prob-med',desc:'Allergic reaction to environmental triggers.'},{name:'Dehydration',prob:'30%',cls:'prob-low',desc:'Insufficient fluid intake causing mild symptoms.'}],
+    moderate:[{name:'Viral Infection (Flu)',prob:'68%',cls:'prob-high',desc:'Influenza virus causing systemic symptoms. Rest and hydration required.'},{name:'Sinusitis',prob:'52%',cls:'prob-med',desc:'Inflammation of sinus cavities, often following a cold.'},{name:'Tension Headache',prob:'38%',cls:'prob-low',desc:'Stress-related muscle tension causing head pain.'}],
+    severe:[{name:'Possible Cardiac Event',prob:'55%',cls:'prob-high',desc:'Chest pain and breathing difficulty may indicate cardiac involvement. Seek immediate care.'},{name:'Pneumonia',prob:'40%',cls:'prob-med',desc:'Lung infection requiring medical treatment and possible antibiotics.'},{name:'Pulmonary Embolism',prob:'22%',cls:'prob-low',desc:'Blood clot in lungs — seek emergency care immediately.'}],
+};
+const RECS_DB={
+    mild:['Rest and stay hydrated','Take paracetamol 500mg for fever/pain','Monitor symptoms for 48 hours','Avoid strenuous activity','If symptoms worsen, consult a doctor'],
+    moderate:['Consult a doctor within 24–48 hours','Take prescribed antihistamines or antivirals','Maintain bed rest','Drink 8+ glasses of water daily','Avoid cold foods and air conditioning'],
+    severe:['Seek emergency medical care immediately','Do not drive — call emergency services','Avoid eating or drinking until evaluated','Notify emergency contacts','Book an urgent appointment now'],
+};
+
+function runChecker(){
+    if(!selectedSymptoms.size){alert('Please select at least one symptom.');return;}
+    document.getElementById('aiResultPlaceholder').style.display='none';
+    document.getElementById('aiResult').classList.remove('show');
+    document.getElementById('loadingDots').style.display='block';
+    setTimeout(()=>{
+        document.getElementById('loadingDots').style.display='none';
+        const sev=document.getElementById('severity').value;
+        const conditions=CONDITIONS_DB[sev];
+        const recs=RECS_DB[sev];
+        const urgencyData={mild:{w:'35%',color:'#38a169',label:'Mild',cls:'success'},moderate:{w:'65%',color:'#ed8936',label:'Moderate',cls:'warning'},severe:{w:'92%',color:'#e53e3e',label:'Urgent',cls:'danger'}};
+        const ud=urgencyData[sev];
+        const summaries={mild:'Based on your symptoms, this appears to be a mild condition. Rest and home care should be sufficient.',moderate:'Your symptoms suggest a moderate condition that warrants medical attention within 1–2 days.',severe:'Your symptoms indicate a potentially serious condition. Please seek medical care immediately.'};
+        document.getElementById('urgencyBadge').textContent=ud.label;
+        document.getElementById('urgencyBadge').className=`badge-pill ${ud.cls}`;
+        document.getElementById('urgencyBar').style.width=ud.w;
+        document.getElementById('urgencyBar').style.background=ud.color;
+        document.getElementById('aiSummary').textContent=summaries[sev];
+        document.getElementById('conditionsList').innerHTML=conditions.map(c=>`<div class="condition-card"><div class="condition-prob ${c.cls}">${c.prob}</div><div class="condition-info"><h4>${c.name}</h4><p>${c.desc}</p></div></div>`).join('');
+        document.getElementById('recommendationsList').innerHTML=recs.map(r=>`<li>${r}</li>`).join('');
+        document.getElementById('aiResult').classList.add('show');
+    },2000);
+}
+// Init with Head selected
+selectPart(document.querySelector('.body-part-btn'),'Head');
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+

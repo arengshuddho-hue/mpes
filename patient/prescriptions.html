@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<!-- Redirects to the secure PHP version -->
+<html><head><meta http-equiv="refresh" content="0;url=prescriptions.php"></head>
+<body>Redirecting... <a href="prescriptions.php">Click here</a></body></html>
+<!--
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescriptions | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        .section-heading{font-size:1.02rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .section-heading i{color:var(--primary-color)}
+        /* Enhanced card styles for prescription records */
+        .rx-card-full{background:var(--card-bg);border:1px solid var(--input-border);border-radius:14px;padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s;border-left:4px solid var(--primary-color)}
+        .rx-card-full:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+        .rx-card-full.expired{border-left-color:#e53e3e;opacity:.8}
+        .rx-header{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+        .rx-doc-img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-color);flex-shrink:0}
+        .rx-doc-info{flex:1}
+        .rx-doc-info h4{margin:0 0 3px;font-size:.98rem}
+        .rx-doc-info p{margin:0;font-size:.8rem;color:var(--text-secondary)}
+        .rx-drugs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px}
+        .drug-chip{background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;padding:10px 14px}
+        .drug-chip .drug-name{font-weight:700;font-size:.9rem;margin-bottom:4px}
+        .drug-chip .drug-dose{font-size:.78rem;color:var(--text-secondary)}
+        .rx-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:12px;border-top:1px solid var(--input-border)}
+        .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+        .filter-bar input,.filter-bar select{padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.88rem;outline:none}
+        .filter-bar input:focus,.filter-bar select:focus{border-color:var(--primary-color)}
+        .rx-preview-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:10000;display:none;align-items:center;justify-content:center}
+        .rx-preview-overlay.open{display:flex}
+        .rx-preview-box{background:var(--card-bg);border-radius:16px;padding:32px;width:90%;max-width:560px;box-shadow:var(--shadow-md);animation:modalIn .3s ease}
+        @keyframes modalIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+        .rx-print-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--primary-color);padding-bottom:14px;margin-bottom:18px}
+        .rx-print-header .logo{font-size:1.2rem;font-weight:700;color:var(--primary-color)}
+        .rx-print-header .rx-num{font-size:.85rem;color:var(--text-secondary)}
+        .rx-print-patient{background:var(--input-bg);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+        .rx-print-patient span{font-size:.82rem;color:var(--text-secondary)}
+        .rx-print-patient strong{font-size:.9rem}
+        .rx-drug-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed var(--input-border)}
+        .rx-drug-row:last-of-type{border-bottom:none}
+        .empty-state{text-align:center;padding:50px 20px;color:var(--text-secondary)}
+        .empty-state i{font-size:3rem;margin-bottom:14px;opacity:.3}
+    </style>
+</head>
+<body class="dashboard-body">
+
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html" class="active"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Prescriptions</h1><p>Patient Portal / Prescriptions</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search prescriptions..."></div>
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient">
+                <span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <!-- Stats -->
+        <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px;">
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-file-prescription"></i></div><div class="stat-info"><h2 class="counter" data-target="8">0</h2><p>Total Rx</p></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h2 class="counter" data-target="3">0</h2><p>Active</p></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-pills"></i></div><div class="stat-info"><h2 class="counter" data-target="5">0</h2><p>Completed</p></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-info"><h2 class="counter" data-target="1">0</h2><p>Refill Needed</p></div></div>
+        </div>
+
+        <!-- Filter -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div class="filter-bar" style="margin:0;">
+                <input type="text" id="rxSearch" placeholder="Search doctor or medicine...">
+                <select id="rxStatusFilter">
+                    <option value="">All</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="expired">Expired</option>
+                </select>
+                <select id="rxSortFilter">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Rx List -->
+        <div id="rxList"></div>
+    </main>
+</div>
+
+<!-- Prescription Preview Modal -->
+<div class="rx-preview-overlay" id="rxPreviewModal">
+    <div class="rx-preview-box">
+        <div class="rx-print-header">
+            <div>
+                <div class="logo">🏥 MPES Healthcare</div>
+                <div style="font-size:.78rem;color:var(--text-secondary);margin-top:3px;">Medical Primary Emergency System</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="rx-num" id="previewRxId">Rx #RX-1045</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);" id="previewDate">May 15, 2026</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">
+            <img id="previewDocImg" src="https://i.pravatar.cc/48?img=47" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-color);" alt="Doctor">
+            <div><strong id="previewDocName">Dr. Sarah Ahmed</strong><div style="font-size:.82rem;color:var(--text-secondary);" id="previewSpec">Cardiologist · City Hospital</div></div>
+        </div>
+        <div class="rx-print-patient">
+            <div><span>Patient</span><br><strong>John Doe</strong></div>
+            <div><span>Age</span><br><strong>32 years</strong></div>
+            <div><span>Blood Group</span><br><strong>B+</strong></div>
+            <div><span>Phone</span><br><strong>+1-555-0101</strong></div>
+        </div>
+        <div style="font-weight:700;margin-bottom:10px;color:var(--primary-color);"><i class="fa-solid fa-file-prescription"></i> Prescribed Medicines</div>
+        <div id="previewDrugs"></div>
+        <div style="padding:12px 0;border-top:1px solid var(--input-border);margin-top:10px;">
+            <strong>Notes:</strong> <span id="previewNotes" style="font-size:.88rem;color:var(--text-secondary);"></span>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="btn btn-primary w-100" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+            <button class="btn btn-outline w-100" onclick="document.getElementById('rxPreviewModal').classList.remove('open')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+        const t=btn.dataset.setTheme;
+        html.setAttribute('data-theme',t);
+        localStorage.setItem('mpes-theme',t);
+        document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+const sidebar=document.getElementById('sidebar'),mainWrapper=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{
+    if(window.innerWidth<=768)sidebar.classList.toggle('mobile-open');
+    else{sidebar.classList.toggle('collapsed');mainWrapper.classList.toggle('sidebar-collapsed');}
+});
+document.querySelectorAll('.rx-preview-overlay').forEach(o=>{
+    o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+document.querySelectorAll('.counter').forEach(el=>{
+    const target=+el.dataset.target;let count=0;
+    const step=Math.ceil(target/20);
+    const iv=setInterval(()=>{count+=step;if(count>=target){count=target;clearInterval(iv);}el.textContent=count;},50);
+});
+
+const RX_DATA=[
+    {id:'RX-1048',doctor:'Dr. Sarah Ahmed',spec:'Cardiologist',hospital:'City Hospital',date:'May 15, 2026',status:'active',img:'https://i.pravatar.cc/48?img=47',
+     drugs:[{name:'Paracetamol 500mg',dose:'2x daily after meal',days:'7 days'},{name:'Amoxicillin 250mg',dose:'3x daily',days:'5 days'},{name:'Omeprazole 20mg',dose:'1x before breakfast',days:'7 days'}],
+     notes:'Rest well, drink plenty of water. Avoid spicy food.'},
+    {id:'RX-1042',doctor:'Dr. Karim Hossain',spec:'Neurologist',hospital:'Apollo Hospital',date:'Apr 28, 2026',status:'active',img:'https://i.pravatar.cc/48?img=12',
+     drugs:[{name:'Aspirin 75mg',dose:'1x daily',days:'30 days'},{name:'Atorvastatin 10mg',dose:'1x at night',days:'30 days'}],
+     notes:'Monitor blood pressure daily. Avoid strenuous activity.'},
+    {id:'RX-1036',doctor:'Dr. Priya Singh',spec:'Orthopedic',hospital:'Metro Medical',date:'Apr 10, 2026',status:'active',img:'https://i.pravatar.cc/48?img=44',
+     drugs:[{name:'Ibuprofen 400mg',dose:'3x daily with food',days:'5 days'},{name:'Calcium + D3',dose:'1x daily',days:'60 days'}],
+     notes:'Physiotherapy sessions recommended. Avoid heavy lifting.'},
+    {id:'RX-1028',doctor:'Dr. Rahman Khan',spec:'General Physician',hospital:'LifeCare Clinic',date:'Mar 22, 2026',status:'completed',img:'https://i.pravatar.cc/48?img=33',
+     drugs:[{name:'Cetirizine 10mg',dose:'1x at night',days:'7 days'},{name:'Pseudoephedrine 60mg',dose:'2x daily',days:'5 days'}],
+     notes:'Avoid dust and allergens. Follow-up if symptoms persist.'},
+    {id:'RX-1019',doctor:'Dr. Nadia Islam',spec:'Dermatologist',hospital:'City Hospital',date:'Feb 14, 2026',status:'expired',img:'https://i.pravatar.cc/48?img=48',
+     drugs:[{name:'Clindamycin Gel 1%',dose:'Apply twice on affected area',days:'14 days'},{name:'Doxycycline 100mg',dose:'1x daily',days:'14 days'}],
+     notes:'Use sunscreen SPF 30+. Avoid harsh soaps.'},
+];
+
+const statusMap={active:'success',completed:'info',expired:'danger'};
+
+function renderRx(list){
+    const container=document.getElementById('rxList');
+    if(!list.length){container.innerHTML=`<div class="empty-state"><i class="fa-solid fa-file-medical"></i><p>No prescriptions found.</p></div>`;return;}
+    container.innerHTML=list.map(rx=>`
+        <div class="rx-card-full ${rx.status==='expired'?'expired':''}">
+            <div class="rx-header">
+                <img src="${rx.img}" class="rx-doc-img" alt="${rx.doctor}">
+                <div class="rx-doc-info">
+                    <h4>${rx.doctor} <span class="badge-pill ${statusMap[rx.status]}" style="margin-left:8px;">${rx.status.charAt(0).toUpperCase()+rx.status.slice(1)}</span></h4>
+                    <p>${rx.spec} &nbsp;·&nbsp; ${rx.hospital}</p>
+                </div>
+                <div style="text-align:right;font-size:.8rem;color:var(--text-secondary);">
+                    <div><strong>${rx.id}</strong></div>
+                    <div>${rx.date}</div>
+                </div>
+            </div>
+            <div class="rx-drugs-grid">
+                ${rx.drugs.map(d=>`<div class="drug-chip"><div class="drug-name"><i class="fa-solid fa-capsules" style="color:var(--primary-color);margin-right:6px;"></i>${d.name}</div><div class="drug-dose">${d.dose} · ${d.days}</div></div>`).join('')}
+            </div>
+            <div class="rx-footer">
+                <span style="font-size:.82rem;color:var(--text-secondary);"><i class="fa-solid fa-note-sticky"></i> ${rx.notes}</span>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-outline btn-sm" onclick="previewRx('${rx.id}')"><i class="fa-solid fa-eye"></i> View</button>
+                    <button class="btn btn-primary btn-sm" onclick="previewRx('${rx.id}')"><i class="fa-solid fa-download"></i> Download</button>
+                    ${rx.status==='expired'?`<button class="btn btn-outline btn-sm" style="border-color:#e53e3e;color:#e53e3e;"><i class="fa-solid fa-rotate-right"></i> Refill</button>`:''}
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+function filterRx(){
+    const q=document.getElementById('rxSearch').value.toLowerCase();
+    const st=document.getElementById('rxStatusFilter').value;
+    const sort=document.getElementById('rxSortFilter').value;
+    let list=RX_DATA.filter(rx=>{
+        const matchQ=!q||rx.doctor.toLowerCase().includes(q)||rx.drugs.some(d=>d.name.toLowerCase().includes(q));
+        const matchSt=!st||rx.status===st;
+        return matchQ&&matchSt;
+    });
+    if(sort==='oldest')list=list.reverse();
+    renderRx(list);
+}
+
+['rxSearch','rxStatusFilter','rxSortFilter'].forEach(id=>document.getElementById(id).addEventListener('input',filterRx));
+
+function previewRx(id){
+    const rx=RX_DATA.find(r=>r.id===id);if(!rx)return;
+    document.getElementById('previewRxId').textContent='Rx #'+rx.id;
+    document.getElementById('previewDate').textContent=rx.date;
+    document.getElementById('previewDocImg').src=rx.img;
+    document.getElementById('previewDocName').textContent=rx.doctor;
+    document.getElementById('previewSpec').textContent=rx.spec+' · '+rx.hospital;
+    document.getElementById('previewNotes').textContent=rx.notes;
+    document.getElementById('previewDrugs').innerHTML=rx.drugs.map(d=>`
+        <div class="rx-drug-row">
+            <div><strong>${d.name}</strong><div style="font-size:.8rem;color:var(--text-secondary);">${d.dose}</div></div>
+            <span class="badge-pill info">${d.days}</span>
+        </div>`).join('');
+    document.getElementById('rxPreviewModal').classList.add('open');
+}
+
+renderRx(RX_DATA);
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+

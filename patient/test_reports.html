@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!-- 
+  patient/test_reports.html 
+  Central repository for medical test results. Visualizes health trends 
+  using Chart.js and allows users to upload/download digital reports.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Reports | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        .section-heading{font-size:1.02rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .section-heading i{color:var(--primary-color)}
+        /* Enhanced report card with status-specific borders */
+        .report-card{background:var(--card-bg);border:1px solid var(--input-border);border-radius:14px;padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s;border-left:4px solid var(--primary-color)}
+        .report-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+        .report-card.abnormal{border-left-color:#e53e3e}
+        .report-card.pending{border-left-color:#ed8936}
+        .report-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+        .report-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;background:rgba(43,108,176,.1);color:var(--primary-color)}
+        .report-icon.abnormal{background:rgba(229,62,62,.1);color:#e53e3e}
+        .report-icon.pending{background:rgba(237,137,54,.1);color:#ed8936}
+        .report-meta{flex:1}
+        .report-meta h4{margin:0 0 3px;font-size:.98rem}
+        .report-meta p{margin:0;font-size:.8rem;color:var(--text-secondary)}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+        .result-item{background:var(--input-bg);border-radius:10px;padding:10px 12px;border:1px solid var(--input-border)}
+        .result-label{font-size:.72rem;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+        .result-value{font-size:1rem;font-weight:700}
+        .result-range{font-size:.72rem;color:var(--text-secondary);margin-top:2px}
+        .result-item.high .result-value{color:#e53e3e}
+        .result-item.low .result-value{color:#ed8936}
+        .result-item.normal .result-value{color:#38a169}
+        .bar-indicator{height:6px;border-radius:3px;background:var(--input-border);margin-top:6px}
+        .bar-fill{height:100%;border-radius:3px;background:#38a169;transition:width 1s ease}
+        .bar-fill.high{background:#e53e3e}
+        .bar-fill.low{background:#ed8936}
+        .filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+        .filter-bar input,.filter-bar select{padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.88rem;outline:none}
+        .report-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--input-border);align-items:center}
+        .upload-zone{border:2px dashed var(--input-border);border-radius:14px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--input-bg)}
+        .upload-zone:hover{border-color:var(--primary-color);background:rgba(43,108,176,.04)}
+        .upload-zone i{font-size:2.2rem;color:var(--primary-color);margin-bottom:10px;display:block}
+        .chart-container{height:220px;position:relative}
+    </style>
+</head>
+<body class="dashboard-body">
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html" class="active"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Test Reports</h1><p>Patient Portal / Test Reports</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search reports..."></div>
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient"><span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="page-content">
+        <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(155px,1fr));margin-bottom:24px;">
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-flask-vial"></i></div><div class="stat-info"><h2 class="counter" data-target="5">0</h2><p>Total Reports</p></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><h2 class="counter" data-target="3">0</h2><p>Normal</p></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-info"><h2 class="counter" data-target="1">0</h2><p>Abnormal</p></div></div>
+            <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-clock"></i></div><div class="stat-info"><h2 class="counter" data-target="1">0</h2><p>Pending</p></div></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:24px;">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-chart-line"></i> Hemoglobin Trend (g/dL)</div>
+                <div class="chart-container"><canvas id="trendChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-cloud-arrow-up"></i> Upload New Report</div>
+                <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-file-medical"></i>
+                    <p style="margin:0 0 6px;font-weight:600;">Drag &amp; drop or click to upload</p>
+                    <p style="margin:0;font-size:.82rem;color:var(--text-secondary);">PDF, JPG, PNG — Max 10MB</p>
+                </div>
+                <input type="file" id="fileInput" style="display:none;" onchange="handleUpload(this)">
+                <div id="uploadFeedback" style="margin-top:12px;display:none;" class="badge-pill success">✅ Report uploaded successfully!</div>
+            </div>
+        </div>
+        <div class="filter-bar">
+            <input type="text" id="reportSearch" placeholder="Search test name...">
+            <select id="reportStatus"><option value="">All Status</option><option value="normal">Normal</option><option value="abnormal">Abnormal</option><option value="pending">Pending</option></select>
+        </div>
+        <div id="reportList"></div>
+    </main>
+</div>
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{const t=btn.dataset.setTheme;html.setAttribute('data-theme',t);localStorage.setItem('mpes-theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+document.getElementById('sidebarToggle').addEventListener('click',()=>{const s=document.getElementById('sidebar'),m=document.getElementById('mainWrapper');if(window.innerWidth<=768)s.classList.toggle('mobile-open');else{s.classList.toggle('collapsed');m.classList.toggle('sidebar-collapsed');}});
+document.querySelectorAll('.counter').forEach(el=>{const t=+el.dataset.target;let c=0;const s=Math.ceil(t/20);const iv=setInterval(()=>{c+=s;if(c>=t){c=t;clearInterval(iv);}el.textContent=c;},50);});
+new Chart(document.getElementById('trendChart').getContext('2d'),{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May'],datasets:[{label:'Hemoglobin',data:[13.2,13.8,14.1,13.6,14.4],borderColor:'#2b6cb0',backgroundColor:'rgba(43,108,176,0.1)',tension:.4,fill:true,pointBackgroundColor:'#2b6cb0',pointRadius:5},{label:'Min',data:[12,12,12,12,12],borderColor:'#38a169',borderDash:[5,5],pointRadius:0},{label:'Max',data:[17.5,17.5,17.5,17.5,17.5],borderColor:'#e53e3e',borderDash:[5,5],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#718096'}}},scales:{x:{grid:{color:'rgba(0,0,0,0.07)'},ticks:{color:'#718096'}},y:{min:10,max:20,grid:{color:'rgba(0,0,0,0.07)'},ticks:{color:'#718096'}}}}});
+const REPORTS=[
+    {id:'RPT-001',name:'Complete Blood Count (CBC)',date:'May 15, 2026',lab:'City Hospital Lab',doctor:'Dr. Sarah Ahmed',status:'normal',
+     results:[{l:'Hemoglobin',v:'14.4 g/dL',r:'12–17.5',s:'normal',p:75},{l:'WBC',v:'7.2 K/µL',r:'4.5–11',s:'normal',p:55},{l:'Platelets',v:'245 K/µL',r:'150–400',s:'normal',p:55},{l:'RBC',v:'5.1 M/µL',r:'4.5–5.9',s:'normal',p:60}],
+     notes:'All values within normal range.'},
+    {id:'RPT-002',name:'Lipid Panel',date:'Apr 28, 2026',lab:'Apollo Lab',doctor:'Dr. Karim Hossain',status:'abnormal',
+     results:[{l:'Total Cholesterol',v:'215 mg/dL',r:'<200',s:'high',p:95},{l:'LDL',v:'138 mg/dL',r:'<100',s:'high',p:90},{l:'HDL',v:'42 mg/dL',r:'>40',s:'normal',p:55},{l:'Triglycerides',v:'185 mg/dL',r:'<150',s:'high',p:85}],
+     notes:'Elevated cholesterol. Dietary changes and medication recommended.'},
+    {id:'RPT-003',name:'Thyroid Function (TSH)',date:'Apr 10, 2026',lab:'Metro Lab',doctor:'Dr. Priya Singh',status:'normal',
+     results:[{l:'TSH',v:'2.1 mIU/L',r:'0.4–4.0',s:'normal',p:50},{l:'T3',v:'120 ng/dL',r:'80–200',s:'normal',p:45},{l:'T4',v:'8.2 µg/dL',r:'5.1–14.1',s:'normal',p:50}],
+     notes:'Thyroid function is normal.'},
+    {id:'RPT-004',name:'Blood Glucose (Fasting)',date:'Mar 22, 2026',lab:'LifeCare Lab',doctor:'Dr. Rahman Khan',status:'normal',
+     results:[{l:'Fasting Glucose',v:'92 mg/dL',r:'70–100',s:'normal',p:65},{l:'HbA1c',v:'5.4%',r:'<5.7%',s:'normal',p:70}],
+     notes:'Blood glucose is normal. Maintain healthy diet.'},
+    {id:'RPT-005',name:'Urine Analysis',date:'May 16, 2026',lab:'City Hospital Lab',doctor:'Dr. Sarah Ahmed',status:'pending',results:[],
+     notes:'Results pending. Expected within 24 hours.'},
+];
+const sm={normal:'success',abnormal:'danger',pending:'warning'};
+function renderReports(list){
+    document.getElementById('reportList').innerHTML=list.map(r=>`
+        <div class="report-card ${r.status}">
+            <div class="report-header">
+                <div class="report-icon ${r.status}"><i class="fa-solid fa-flask-vial"></i></div>
+                <div class="report-meta">
+                    <h4>${r.name} <span class="badge-pill ${sm[r.status]}" style="margin-left:8px;">${r.status.charAt(0).toUpperCase()+r.status.slice(1)}</span></h4>
+                    <p><i class="fa-solid fa-hospital"></i> ${r.lab} &nbsp;·&nbsp; <i class="fa-solid fa-calendar"></i> ${r.date} &nbsp;·&nbsp; <i class="fa-solid fa-user-doctor"></i> ${r.doctor} &nbsp;·&nbsp; ID: ${r.id}</p>
+                </div>
+            </div>
+            ${r.results.length?`<div class="result-grid">${r.results.map(res=>`<div class="result-item ${res.s}"><div class="result-label">${res.l}</div><div class="result-value">${res.v}</div><div class="result-range">Ref: ${res.r}</div><div class="bar-indicator"><div class="bar-fill ${res.s}" style="width:${res.p}%"></div></div></div>`).join('')}</div>`:`<p style="color:var(--text-secondary);font-size:.85rem;margin:8px 0 14px;">Results not yet available.</p>`}
+            <div class="report-actions">
+                <p style="font-size:.82rem;color:var(--text-secondary);flex:1;margin:0;"><i class="fa-solid fa-note-sticky"></i> ${r.notes}</p>
+                <button class="btn btn-outline btn-sm" onclick="alert('View: ${r.id}')"><i class="fa-solid fa-eye"></i> View</button>
+                <button class="btn btn-primary btn-sm" onclick="alert('Download: ${r.id}')"><i class="fa-solid fa-download"></i> Download</button>
+                ${r.status==='abnormal'?`<button class="btn btn-sm" style="background:rgba(229,62,62,.1);color:#e53e3e;border:none;padding:7px 14px;border-radius:8px;font-weight:600;cursor:pointer;" onclick="window.location='appointments.html'"><i class="fa-solid fa-calendar-plus"></i> Follow-up</button>`:''}
+            </div>
+        </div>`).join('');
+}
+function filterReports(){
+    const q=document.getElementById('reportSearch').value.toLowerCase();
+    const st=document.getElementById('reportStatus').value;
+    renderReports(REPORTS.filter(r=>(!q||r.name.toLowerCase().includes(q))&&(!st||r.status===st)));
+}
+['reportSearch','reportStatus'].forEach(id=>document.getElementById(id).addEventListener('input',filterReports));
+renderReports(REPORTS);
+function handleUpload(inp){if(inp.files[0]){const fb=document.getElementById('uploadFeedback');fb.style.display='inline-block';setTimeout(()=>fb.style.display='none',3000);}}
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+
