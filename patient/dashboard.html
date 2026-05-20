@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        .nav-section { padding:18px 0 4px 20px; font-size:0.68rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1px; }
+        .section-heading { font-size:1.02rem; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+        .section-heading i { color:var(--primary-color); }
+        .view-all { font-size:0.82rem; color:var(--primary-color); text-decoration:none; margin-left:auto; }
+    </style>
+</head>
+<body class="dashboard-body">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php">
+        <i class="fa-solid fa-truck-medical logo-icon"></i>
+        <span class="logo-text">MPES</span>
+    </a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php" class="active"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+        <li><a href="ambulance.html"><i class="fa-solid fa-truck-medical"></i><span>Ambulance</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<!-- ═══════════ MAIN WRAPPER ═══════════ -->
+<div class="main-wrapper" id="mainWrapper">
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Dashboard</h1><p>Patient Portal / Dashboard</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="Search doctors, medicines...">
+            </div>
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light" title="Light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark" title="Dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind" title="Color-Blind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <button class="icon-btn"><i class="fa-solid fa-comment-medical"></i></button>
+            <button class="sos-btn" onclick="document.getElementById('sosModal').classList.add('open')">
+                <i class="fa-solid fa-phone-volume"></i> SOS
+            </button>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient">
+                <span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <a href="#"><i class="fa-solid fa-circle-question"></i> Help Center</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <!-- Emergency Banner -->
+        <div class="emergency-banner">
+            <div>
+                <h3><i class="fa-solid fa-truck-medical"></i> Emergency Ambulance</h3>
+                <p>Get nearest government &amp; private ambulance instantly</p>
+            </div>
+            <button class="btn-emergency" onclick="document.getElementById('sosModal').classList.add('open')">
+                <i class="fa-solid fa-phone-volume"></i> Call Ambulance
+            </button>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="stat-info">
+                    <h2 class="counter" data-target="5">0</h2>
+                    <p>Appointments</p>
+                    <div class="stat-trend"><i class="fa-solid fa-arrow-up"></i> 2 upcoming</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-file-prescription"></i></div>
+                <div class="stat-info">
+                    <h2 class="counter" data-target="8">0</h2>
+                    <p>Prescriptions</p>
+                    <div class="stat-trend" style="color:#38a169;"><i class="fa-solid fa-arrow-up"></i> 1 new</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fa-solid fa-flask-vial"></i></div>
+                <div class="stat-info">
+                    <h2 class="counter" data-target="3">0</h2>
+                    <p>Test Reports</p>
+                    <div class="stat-trend" style="color:#ed8936;">1 pending</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-droplet"></i></div>
+                <div class="stat-info">
+                    <h2>B+</h2>
+                    <p>Blood Group</p>
+                    <div class="stat-trend" style="color:var(--text-secondary);">Last donated: Mar</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments + Prescriptions Grid -->
+        <div class="grid-2">
+            <div class="card">
+                <div class="section-heading">
+                    <i class="fa-solid fa-calendar-check"></i> Upcoming Appointments
+                    <a href="appointments.html" class="view-all">View all →</a>
+                </div>
+                <div class="appointment-item">
+                    <div class="appt-date"><div class="day">20</div><div class="mon">MAY</div></div>
+                    <div class="appt-info">
+                        <h4>Dr. Sarah Ahmed</h4>
+                        <p>Cardiologist · City Hospital</p>
+                        <p>Serial #001 | 10:00 AM</p>
+                    </div>
+                    <span class="badge-pill success">Confirmed</span>
+                </div>
+                <div class="appointment-item">
+                    <div class="appt-date" style="background:#ed8936;"><div class="day">24</div><div class="mon">MAY</div></div>
+                    <div class="appt-info">
+                        <h4>Dr. Karim Hossain</h4>
+                        <p>Neurologist · Apollo Hospital</p>
+                        <p>Serial #002 | 2:30 PM</p>
+                    </div>
+                    <span class="badge-pill warning">Pending</span>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="document.getElementById('bookApptModal').classList.add('open')">
+                    <i class="fa-solid fa-calendar-plus"></i> Book New Appointment
+                </button>
+            </div>
+            <div class="card">
+                <div class="section-heading">
+                    <i class="fa-solid fa-file-prescription"></i> Recent Prescriptions
+                    <a href="prescriptions.html" class="view-all">View all →</a>
+                </div>
+                <div class="rx-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <strong>Dr. Sarah Ahmed — Cardiologist</strong>
+                            <p class="text-muted" style="margin:3px 0 0;">May 15, 2026 · City Hospital</p>
+                        </div>
+                        <span class="badge-pill success">Active</span>
+                    </div>
+                    <div class="rx-drug">Paracetamol 500mg <span class="dose">· 2x daily after meal · 7 days</span></div>
+                    <div class="rx-drug">Amoxicillin 250mg <span class="dose">· 3x daily · 5 days</span></div>
+                    <div class="rx-drug">Omeprazole 20mg <span class="dose">· 1x before breakfast · 7 days</span></div>
+                    <button class="btn btn-outline btn-sm" style="margin-top:12px;"><i class="fa-solid fa-download"></i> Download PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Symptom Checker -->
+        <div class="symptom-checker mt-4">
+            <h3><i class="fa-solid fa-robot"></i> AI Symptom Checker</h3>
+            <p>Describe your symptoms and get instant AI-powered health guidance</p>
+            <div class="symptom-tags">
+                <span class="symptom-tag" onclick="toggleTag(this)">Fever</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Headache</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Cough</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Fatigue</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Chest Pain</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Nausea</span>
+                <span class="symptom-tag" onclick="toggleTag(this)">Dizziness</span>
+            </div>
+            <div class="symptom-input-row">
+                <input type="text" id="symptomInput" placeholder="Describe additional symptoms...">
+                <button class="btn btn-primary" onclick="checkSymptoms()">Check Now →</button>
+            </div>
+            <div id="symptomResult" style="display:none;margin-top:14px;background:rgba(255,255,255,0.12);border-radius:10px;padding:14px;font-size:0.9rem;">
+                <strong>🤖 AI Assessment:</strong> Based on your symptoms, this could be a mild viral infection.
+                Recommended: Rest, hydration, and paracetamol 500mg every 8 hours.
+                If symptoms persist &gt;48 hrs or worsen, please consult a doctor.
+                <a href="find_doctors.html" style="color:#fff;text-decoration:underline;margin-left:8px;">Book Appointment →</a>
+            </div>
+        </div>
+
+        <!-- Doctor + Nearby Hospitals Map -->
+        <div class="grid-2 mt-4">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-user-doctor"></i> Find Doctors</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <input type="text" class="form-control" placeholder="Doctor name..." style="flex:1;min-width:120px;" id="drQuickSearch">
+                    <select class="form-control" style="flex:1;min-width:120px;" id="drQuickSpecialty">
+                        <option value="">All Specialists</option>
+                        <option>Cardiologist</option>
+                        <option>Neurologist</option>
+                        <option>Dermatologist</option>
+                        <option>General Physician</option>
+                        <option>Orthopedic</option>
+                    </select>
+                </div>
+                <div id="dashDoctorList"></div>
+                <a href="find_doctors.html" class="btn btn-outline btn-sm" style="margin-top:14px;width:100%;justify-content:center;">View All Doctors</a>
+            </div>
+
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-location-dot"></i> Nearby Hospitals</div>
+                <div id="hospitalMap"></div>
+            </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="card mt-4">
+            <div class="section-heading"><i class="fa-solid fa-star"></i> My Reviews</div>
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Doctor</th><th>Hospital</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+                    <tbody>
+                        <tr><td>Dr. Sarah Ahmed</td><td>City Hospital</td><td>⭐⭐⭐⭐⭐</td><td>Excellent consultation!</td><td>May 10, 2026</td></tr>
+                        <tr><td>Dr. Karim Hossain</td><td>Apollo Hospital</td><td>⭐⭐⭐⭐</td><td>Very professional and helpful.</td><td>Apr 25, 2026</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- SOS Modal -->
+<div class="modal-overlay" id="sosModal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3.5rem;margin-bottom:12px;animation:sosPulse 1.5s infinite;">🚑</div>
+        <h2 style="color:#e53e3e;margin-bottom:8px;">EMERGENCY SOS</h2>
+        <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">This will notify nearby hospitals and your emergency contacts with your live location.</p>
+        <a href="tel:911" class="btn btn-danger w-100" style="justify-content:center;margin-bottom:10px;"><i class="fa-solid fa-phone-volume"></i> Call Ambulance (911)</a>
+        <button class="btn btn-outline w-100" style="justify-content:center;margin-bottom:10px;" onclick="alert('Emergency alert sent to Sarah Doe!')"><i class="fa-solid fa-bell"></i> Notify Emergency Contacts</button>
+        <a href="hospitals.php" class="btn btn-outline w-100" style="justify-content:center;margin-bottom:10px;"><i class="fa-solid fa-hospital"></i> Find Nearby Hospitals</a>
+        <button class="btn btn-outline w-100" style="justify-content:center;" onclick="document.getElementById('sosModal').classList.remove('open')">Close</button>
+    </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="bookApptModal">
+    <div class="modal-box">
+        <h3 style="margin-bottom:20px;"><i class="fa-solid fa-calendar-plus" style="color:var(--primary-color);"></i> Book Appointment</h3>
+        <div class="form-group">
+            <label>Select Doctor</label>
+            <select class="form-control">
+                <option>Dr. Sarah Ahmed — Cardiologist ($80)</option>
+                <option>Dr. Karim Hossain — Neurologist ($100)</option>
+                <option>Dr. Priya Singh — Orthopedic ($90)</option>
+                <option>Dr. Rahman Khan — General Physician ($40)</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <div class="form-group">
+                <label>Preferred Date</label>
+                <input type="date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Preferred Time</label>
+                <select class="form-control">
+                    <option>09:00 AM</option><option>10:00 AM</option>
+                    <option>11:00 AM</option><option>02:00 PM</option><option>03:00 PM</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Notes (optional)</label>
+            <input type="text" class="form-control" placeholder="Brief reason for visit...">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-primary w-100" onclick="bookAppt()"><i class="fa-solid fa-check"></i> Confirm Booking</button>
+            <button class="btn btn-outline" onclick="document.getElementById('bookApptModal').classList.remove('open')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Floating SOS -->
+<button class="fab-sos" onclick="document.getElementById('sosModal').classList.add('open')">
+    <i class="fa-solid fa-phone-volume"></i><span>SOS</span>
+</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Theme
+const html = document.documentElement;
+const saved = localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme', saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved) btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+        const t=btn.dataset.setTheme;
+        html.setAttribute('data-theme',t);
+        localStorage.setItem('mpes-theme',t);
+        document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+// Sidebar toggle
+const sidebar=document.getElementById('sidebar'), mainWrapper=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{
+    if(window.innerWidth<=768){ sidebar.classList.toggle('mobile-open'); }
+    else { sidebar.classList.toggle('collapsed'); mainWrapper.classList.toggle('sidebar-collapsed'); }
+});
+
+// Modal close on overlay
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+    o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// Animated counters
+document.querySelectorAll('.counter').forEach(el=>{
+    const target=+el.dataset.target; let count=0;
+    const step=Math.ceil(target/30);
+    const iv=setInterval(()=>{ count+=step; if(count>=target){count=target;clearInterval(iv);} el.textContent=count; },50);
+});
+
+// Symptom checker
+function toggleTag(el){ el.classList.toggle('active'); }
+function checkSymptoms(){ document.getElementById('symptomResult').style.display='block'; }
+
+// Book appointment
+let serial=2;
+function bookAppt(){
+    serial++;
+    alert(`✅ Appointment Confirmed!\nSerial Number: #00${serial}\nYou will receive a confirmation SMS/Email.`);
+    document.getElementById('bookApptModal').classList.remove('open');
+}
+
+// Doctors quick list
+const DOCTORS=[
+    { name:'Dr. Sarah Ahmed',    specialty:'Cardiologist',      fee:80,  img:'https://i.pravatar.cc/40?img=47'},
+    { name:'Dr. Karim Hossain',  specialty:'Neurologist',       fee:100, img:'https://i.pravatar.cc/40?img=12'},
+    { name:'Dr. Priya Singh',    specialty:'Orthopedic',        fee:90,  img:'https://i.pravatar.cc/40?img=44'},
+    { name:'Dr. Rahman Khan',    specialty:'General Physician', fee:40,  img:'https://i.pravatar.cc/40?img=33'},
+    { name:'Dr. Nadia Islam',    specialty:'Dermatologist',     fee:60,  img:'https://i.pravatar.cc/40?img=48'},
+];
+function renderQuickDoctors(list){
+    document.getElementById('dashDoctorList').innerHTML = list.slice(0,3).map(d=>`
+        <div class="appointment-item">
+            <img src="${d.img}" style="border-radius:50%;width:44px;height:44px;object-fit:cover;" alt="${d.name}">
+            <div class="appt-info">
+                <h4>${d.name}</h4>
+                <p>${d.specialty} · $${d.fee}/visit</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('bookApptModal').classList.add('open')">Book</button>
+        </div>`).join('');
+}
+renderQuickDoctors(DOCTORS);
+
+document.getElementById('drQuickSearch').addEventListener('input', function(){
+    renderQuickDoctors(DOCTORS.filter(d=>d.name.toLowerCase().includes(this.value.toLowerCase())));
+});
+document.getElementById('drQuickSpecialty').addEventListener('change', function(){
+    renderQuickDoctors(this.value ? DOCTORS.filter(d=>d.specialty===this.value) : DOCTORS);
+});
+
+// Leaflet Map
+const map=L.map('hospitalMap').setView([40.7128,-74.0060],13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+[
+    {name:'City General Hospital',   lat:40.7148,lng:-74.0120,type:'government'},
+    {name:'Apollo Medical Center',   lat:40.7090,lng:-74.0000,type:'private'},
+    {name:'LifeCare Clinic',         lat:40.7180,lng:-73.9980,type:'private'},
+    {name:'Metro Emergency Hospital',lat:40.7060,lng:-74.0150,type:'government'},
+].forEach(h=>{
+    const color=h.type==='government'?'#2b6cb0':'#38a169';
+    L.marker([h.lat,h.lng],{icon:L.divIcon({
+        html:`<div style="background:${color};color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.3);">H</div>`,
+        className:'',iconAnchor:[17,17]
+    })}).addTo(map).bindPopup(`<strong>${h.name}</strong><br><span style="font-size:0.8rem;color:${color};">${h.type}</span>`);
+});
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+
