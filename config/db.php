@@ -21,4 +21,4 @@ try {
     // Catch any connection errors and stop script execution, displaying the error message
     die("Database Connection failed: " . $e->getMessage());
 }
-?>
+?> 
