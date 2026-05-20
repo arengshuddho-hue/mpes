@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!-- 
+  patient/profile.html 
+  Comprehensive user profile management. Covers personal details, medical 
+  history, social contacts, and account security settings with a tabbed UI.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        /* Stylish profile header with gradient and background patterns */
+        .profile-header{background:linear-gradient(135deg,#2b6cb0,#1a365d);border-radius:16px;padding:40px 30px;color:#fff;margin-bottom:26px;position:relative;overflow:hidden}
+        [data-theme="colorblind"] .profile-header{background:linear-gradient(135deg,#ed8936,#c05621)}
+        .profile-cover-shape{position:absolute;right:0;top:0;width:300px;height:100%;background:url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="rgba(255,255,255,0.05)" d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,81.6,-46.3C91.4,-33.5,98.1,-18,99.1,-2.1C100.1,13.8,95.3,30.1,85.5,43.1C75.8,56.1,61,65.8,45.8,73.1C30.6,80.4,15.3,85.3,0.3,84.7C-14.6,84.2,-29.3,78.2,-43.3,70.5C-57.3,62.8,-70.6,53.4,-80.6,40.7C-90.6,28,-97.3,12,-98,-4.2C-98.7,-20.4,-93.4,-36.8,-83.1,-49.8C-72.8,-62.8,-57.5,-72.4,-42.6,-78.9C-27.7,-85.4,-13.8,-88.8,1.1,-90.7C16,-92.6,30.6,-83.6,44.7,-76.4Z" transform="translate(100 100)"/></svg>') no-repeat right center;background-size:cover;opacity:0.6;pointer-events:none}
+        .profile-user-info{display:flex;align-items:center;gap:24px;position:relative;z-index:2}
+        .profile-avatar-wrap{position:relative}
+        .profile-avatar{width:110px;height:110px;border-radius:50%;object-fit:cover;border:4px solid rgba(255,255,255,0.3)}
+        .profile-avatar-edit{position:absolute;bottom:4px;right:4px;background:#fff;color:var(--primary-color);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:transform 0.2s}
+        .profile-avatar-edit:hover{transform:scale(1.1)}
+        .profile-details h2{margin:0 0 6px;font-size:1.8rem}
+        .profile-details p{margin:0;opacity:0.85;font-size:1rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        .profile-badge{background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600}
+        .profile-tabs{display:flex;gap:4px;background:var(--input-bg);padding:4px;border-radius:12px;margin-bottom:24px;overflow-x:auto}
+        .profile-tab{padding:10px 24px;border-radius:8px;font-weight:600;font-size:0.9rem;cursor:pointer;color:var(--text-secondary);transition:all 0.2s;white-space:nowrap}
+        .profile-tab.active{background:var(--card-bg);color:var(--primary-color);box-shadow:var(--shadow-sm)}
+        .profile-tab-content{display:none}
+        .profile-tab-content.active{display:block;animation:fadeIn 0.3s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .profile-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .section-heading{font-size:1.05rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--input-border)}
+        .section-heading i{color:var(--primary-color)}
+        .social-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+        .social-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--input-bg);color:var(--text-secondary);font-size:1.2rem;flex-shrink:0}
+        .social-row input{flex:1}
+        .bg-selector{display:flex;gap:10px;flex-wrap:wrap}
+        .bg-option{width:45px;height:45px;border-radius:50%;border:2px solid var(--input-border);display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;background:var(--input-bg);transition:all 0.2s}
+        .bg-option:hover{border-color:var(--primary-color);color:var(--primary-color)}
+        .bg-option.active{background:#e53e3e;color:#fff;border-color:#e53e3e;box-shadow:0 0 10px rgba(229,62,62,0.3)}
+        @media(max-width:768px){.profile-form-grid{grid-template-columns:1fr} .profile-user-info{flex-direction:column;text-align:center}}
+    </style>
+</head>
+<body class="dashboard-body">
+
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html" class="active"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>My Profile</h1><p>Patient Portal / Profile</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/110?img=11" alt="Patient"><span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        
+        <div class="profile-header">
+            <div class="profile-cover-shape"></div>
+            <div class="profile-user-info">
+                <div class="profile-avatar-wrap">
+                    <img src="https://i.pravatar.cc/110?img=11" class="profile-avatar" alt="John Doe" id="profileImgPreview">
+                    <div class="profile-avatar-edit" onclick="document.getElementById('avatarUpload').click()"><i class="fa-solid fa-camera"></i></div>
+                    <input type="file" id="avatarUpload" style="display:none" accept="image/*" onchange="updateAvatar(this)">
+                </div>
+                <div class="profile-details">
+                    <h2>John Doe</h2>
+                    <p>
+                        <span><i class="fa-solid fa-envelope"></i> john.doe@email.com</span>
+                        <span><i class="fa-solid fa-phone"></i> +1 (555) 123-4567</span>
+                        <span class="profile-badge">PT-1048</span>
+                        <span class="profile-badge" style="background:rgba(229,62,62,0.8);"><i class="fa-solid fa-droplet"></i> B+</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-tabs">
+            <div class="profile-tab active" onclick="switchTab('personal', this)"><i class="fa-solid fa-user"></i> Personal Info</div>
+            <div class="profile-tab" onclick="switchTab('medical', this)"><i class="fa-solid fa-file-medical"></i> Medical Info</div>
+            <div class="profile-tab" onclick="switchTab('social', this)"><i class="fa-solid fa-share-nodes"></i> Social Links</div>
+            <div class="profile-tab" onclick="switchTab('security', this)"><i class="fa-solid fa-shield-halved"></i> Security</div>
+        </div>
+
+        <!-- Personal Info Tab -->
+        <div class="profile-tab-content active" id="tab-personal">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-address-card"></i> Personal Details</div>
+                <div class="profile-form-grid">
+                    <div class="form-group"><label>First Name</label><input type="text" class="form-control" value="John"></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" class="form-control" value="Doe"></div>
+                    <div class="form-group"><label>Email Address</label><input type="email" class="form-control" value="john.doe@email.com"></div>
+                    <div class="form-group"><label>Phone Number</label><input type="tel" class="form-control" value="+1 (555) 123-4567"></div>
+                    <div class="form-group"><label>Date of Birth</label><input type="date" class="form-control" value="1994-05-15"></div>
+                    <div class="form-group"><label>Gender</label>
+                        <select class="form-control">
+                            <option selected>Male</option><option>Female</option><option>Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Address</label><input type="text" class="form-control" value="123 Health Avenue, New York, NY 10001"></div>
+                </div>
+                <div style="margin-top:20px;text-align:right;">
+                    <button class="btn btn-primary" onclick="showSaveAlert()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Info Tab -->
+        <div class="profile-tab-content" id="tab-medical">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-heart-pulse"></i> Medical Profile</div>
+                
+                <div class="form-group"><label>Blood Group</label>
+                    <div class="bg-selector" id="bgSelector">
+                        <div class="bg-option" onclick="setBG(this)">A+</div><div class="bg-option" onclick="setBG(this)">A-</div>
+                        <div class="bg-option active" onclick="setBG(this)">B+</div><div class="bg-option" onclick="setBG(this)">B-</div>
+                        <div class="bg-option" onclick="setBG(this)">O+</div><div class="bg-option" onclick="setBG(this)">O-</div>
+                        <div class="bg-option" onclick="setBG(this)">AB+</div><div class="bg-option" onclick="setBG(this)">AB-</div>
+                    </div>
+                </div>
+                
+                <div class="profile-form-grid mt-4">
+                    <div class="form-group"><label>Height (cm)</label><input type="number" class="form-control" value="178"></div>
+                    <div class="form-group"><label>Weight (kg)</label><input type="number" class="form-control" value="75"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Known Allergies (comma separated)</label><input type="text" class="form-control" value="Penicillin, Peanuts"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Chronic Conditions</label><input type="text" class="form-control" value="None"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Current Medications</label><input type="text" class="form-control" value="Vitamin D, Omega-3"></div>
+                </div>
+
+                <div style="margin-top:20px;text-align:right;">
+                    <button class="btn btn-primary" onclick="showSaveAlert()"><i class="fa-solid fa-floppy-disk"></i> Save Medical Info</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Links Tab -->
+        <div class="profile-tab-content" id="tab-social">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-globe"></i> Social & Emergency Contacts</div>
+                
+                <div class="social-row">
+                    <div class="social-icon" style="color:#25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+                    <div class="form-group" style="margin:0;flex:1;"><label style="display:none;">WhatsApp</label><input type="text" class="form-control" placeholder="WhatsApp Number" value="+1 (555) 123-4567"></div>
+                </div>
+                <div class="social-row">
+                    <div class="social-icon" style="color:#0a66c2;"><i class="fa-brands fa-linkedin"></i></div>
+                    <div class="form-group" style="margin:0;flex:1;"><input type="text" class="form-control" placeholder="LinkedIn Profile URL" value="https://linkedin.com/in/johndoe"></div>
+                </div>
+                <div class="social-row">
+                    <div class="social-icon" style="color:#1da1f2;"><i class="fa-brands fa-twitter"></i></div>
+                    <div class="form-group" style="margin:0;flex:1;"><input type="text" class="form-control" placeholder="Twitter Profile URL" value="https://twitter.com/johndoe"></div>
+                </div>
+                
+                <h4 style="margin:20px 0 10px;font-size:0.95rem;">Emergency Contact</h4>
+                <div class="profile-form-grid">
+                    <div class="form-group"><label>Contact Name</label><input type="text" class="form-control" value="Jane Doe"></div>
+                    <div class="form-group"><label>Relationship</label><input type="text" class="form-control" value="Spouse"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Emergency Phone</label><input type="tel" class="form-control" value="+1 (555) 987-6543"></div>
+                </div>
+
+                <div style="margin-top:20px;text-align:right;">
+                    <button class="btn btn-primary" onclick="showSaveAlert()"><i class="fa-solid fa-floppy-disk"></i> Save Social Info</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div class="profile-tab-content" id="tab-security">
+            <div class="card">
+                <div class="section-heading"><i class="fa-solid fa-lock"></i> Password & Security</div>
+                
+                <div class="form-group"><label>Current Password</label><input type="password" class="form-control" placeholder="Enter current password"></div>
+                <div class="profile-form-grid">
+                    <div class="form-group"><label>New Password</label><input type="password" class="form-control" placeholder="Enter new password"></div>
+                    <div class="form-group"><label>Confirm New Password</label><input type="password" class="form-control" placeholder="Confirm new password"></div>
+                </div>
+                
+                <div style="margin-top:16px;">
+                    <button class="btn btn-primary" onclick="alert('Password updated successfully!')"><i class="fa-solid fa-key"></i> Update Password</button>
+                </div>
+
+                <hr style="border:0;border-top:1px solid var(--input-border);margin:24px 0;">
+                
+                <div class="section-heading"><i class="fa-solid fa-shield-virus"></i> Two-Factor Authentication (2FA)</div>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">Protect your account with an extra layer of security. Once configured, you'll be required to enter both your password and an authentication code.</p>
+                <div style="display:flex;align-items:center;gap:14px;background:var(--input-bg);padding:16px;border-radius:12px;border:1px solid var(--input-border);">
+                    <div style="font-size:2rem;color:var(--primary-color);"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;margin-bottom:4px;">Authenticator App</div>
+                        <div style="font-size:0.8rem;color:var(--text-secondary);">Use Google Authenticator, Authy, or similar app.</div>
+                    </div>
+                    <button class="btn btn-outline" onclick="alert('2FA Setup wizard will open.')">Enable 2FA</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{const t=btn.dataset.setTheme;html.setAttribute('data-theme',t);localStorage.setItem('mpes-theme',t);document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+const sidebar=document.getElementById('sidebar'),mw=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{if(window.innerWidth<=768)sidebar.classList.toggle('mobile-open');else{sidebar.classList.toggle('collapsed');mw.classList.toggle('sidebar-collapsed');}});
+
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.profile-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.profile-tab-content').forEach(c=>c.classList.remove('active'));
+    document.getElementById('tab-'+tabId).classList.add('active');
+}
+
+function setBG(btn) {
+    document.querySelectorAll('.bg-option').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function updateAvatar(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profileImgPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function showSaveAlert() {
+    alert("✅ Profile changes saved successfully!");
+}
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+</html>
+
+
