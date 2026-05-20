@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<!-- 
+  patient/appointments.html 
+  This page allows patients to view their upcoming and past appointments,
+  filter them by status or date, and book new appointments through a modal.
+-->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments | MPES</title>
+    <link rel="stylesheet" href="../assets/css/theme.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Sidebar navigation section headers */
+        .nav-section{padding:18px 0 4px 20px;font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px}
+        /* Dashboard section headings with consistent iconography */
+        .section-heading{font-size:1.02rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .section-heading i{color:var(--primary-color)}
+        .view-all{font-size:.82rem;color:var(--primary-color);text-decoration:none;margin-left:auto}
+        /* Top filter bar for narrowing down lists */
+        .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;align-items:center}
+        .filter-bar input,.filter-bar select{padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;background:var(--input-bg);color:var(--text-primary);font-size:.88rem;outline:none}
+        .filter-bar input:focus,.filter-bar select:focus{border-color:var(--primary-color)}
+        /* Individual appointment card styles */
+        .appt-card{background:var(--card-bg);border:1px solid var(--input-border);border-radius:14px;padding:20px 22px;margin-bottom:14px;display:flex;align-items:center;gap:18px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+        .appt-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary-color);border-radius:4px 0 0 4px}
+        .appt-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+        .appt-card.pending::before{background:#ed8936}
+        .appt-card.cancelled::before{background:#e53e3e}
+        .appt-card.completed::before{background:#38a169}
+        .appt-date-box{text-align:center;background:var(--primary-color);color:#fff;border-radius:12px;padding:10px 14px;min-width:58px;flex-shrink:0}
+        .appt-date-box.pending{background:#ed8936}
+        .appt-date-box.cancelled{background:#e53e3e}
+        .appt-date-box.completed{background:#38a169}
+        .appt-date-box .day{font-size:1.5rem;font-weight:700;line-height:1}
+        .appt-date-box .mon{font-size:.7rem;font-weight:600;opacity:.85}
+        .appt-doc-img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:3px solid var(--input-border);flex-shrink:0}
+        .appt-details{flex:1;min-width:0}
+        .appt-details h3{margin:0 0 4px;font-size:1rem}
+        .appt-details p{margin:0;font-size:.82rem;color:var(--text-secondary)}
+        .appt-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+        .mini-stat{background:var(--card-bg);border:1px solid var(--input-border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow-sm)}
+        .mini-stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+        .mini-stat-info h3{margin:0 0 2px;font-size:1.3rem;font-weight:700}
+        .mini-stat-info p{margin:0;font-size:.78rem;color:var(--text-secondary)}
+        .calendar-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px}
+        .cal-day{min-width:54px;text-align:center;padding:10px 8px;border-radius:12px;border:1px solid var(--input-border);cursor:pointer;transition:all .2s;background:var(--card-bg)}
+        .cal-day:hover{border-color:var(--primary-color);color:var(--primary-color)}
+        .cal-day.active{background:var(--primary-color);color:#fff;border-color:var(--primary-color)}
+        .cal-day .cal-num{font-size:1.1rem;font-weight:700}
+        .cal-day .cal-name{font-size:.68rem;color:inherit;opacity:.75}
+        .cal-day.active .cal-name{opacity:.85}
+        .cal-day .cal-dot{width:6px;height:6px;border-radius:50%;background:#e53e3e;margin:4px auto 0}
+        .cal-day.active .cal-dot{background:#fff}
+        .empty-state{text-align:center;padding:50px 20px;color:var(--text-secondary)}
+        .empty-state i{font-size:3rem;margin-bottom:14px;opacity:.3}
+    </style>
+</head>
+<body class="dashboard-body">
+
+<aside class="sidebar" id="sidebar">
+    <a class="sidebar-logo" href="dashboard.php"><i class="fa-solid fa-truck-medical logo-icon"></i><span class="logo-text">MPES</span></a>
+    <p class="nav-section">MAIN</p>
+    <ul class="sidebar-menu">
+        <li><a href="dashboard.php"><i class="fa-solid fa-house-medical"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.html"><i class="fa-solid fa-user-injured"></i><span>My Profile</span></a></li>
+        <li><a href="appointments.html" class="active"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a></li>
+        <li><a href="prescriptions.html"><i class="fa-solid fa-file-prescription"></i><span>Prescriptions</span></a></li>
+        <li><a href="test_reports.html"><i class="fa-solid fa-flask-vial"></i><span>Test Reports</span></a></li>
+    </ul>
+    <p class="nav-section">FIND</p>
+    <ul class="sidebar-menu">
+        <li><a href="find_doctors.html"><i class="fa-solid fa-user-doctor"></i><span>Find Doctors</span></a></li>
+        <li><a href="hospitals.php"><i class="fa-solid fa-hospital"></i><span>Hospitals</span></a></li>
+        <li><a href="medicines.html"><i class="fa-solid fa-pills"></i><span>Medicines</span></a></li>
+        <li><a href="blood_donors.php"><i class="fa-solid fa-droplet"></i><span>Blood Donors</span></a></li>
+    </ul>
+    <p class="nav-section">HEALTH</p>
+    <ul class="sidebar-menu">
+        <li><a href="symptom_checker.html"><i class="fa-solid fa-robot"></i><span>AI Symptom Checker</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="danger"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+</aside>
+
+<div class="main-wrapper" id="mainWrapper">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="icon-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title"><h1>Appointments</h1><p>Patient Portal / Appointments</p></div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-search"><i class="fa-solid fa-search"></i><input type="text" placeholder="Search appointments..."></div>
+            <div class="theme-switcher-row">
+                <button class="theme-btn" data-set-theme="light"><i class="fa-solid fa-sun"></i></button>
+                <button class="theme-btn" data-set-theme="dark"><i class="fa-solid fa-moon"></i></button>
+                <button class="theme-btn" data-set-theme="colorblind"><i class="fa-solid fa-eye-low-vision"></i></button>
+            </div>
+            <div class="notification-container">
+                <button class="icon-btn" id="notificationBtn" title="Notifications">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button id="markAllReadBtn" class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <div class="notification-empty">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Loading notifications...</p>
+                        </div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="settings.html">Notification Settings</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-pill">
+                <img src="https://i.pravatar.cc/40?img=11" alt="Patient">
+                <span>John Doe</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;color:var(--text-secondary);"></i>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+                    <a href="../logout.php" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <!-- Mini Stats -->
+        <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px;">
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:rgba(43,108,176,.1);color:var(--primary-color);"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="mini-stat-info"><h3 id="totalCount">0</h3><p>Total</p></div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:rgba(56,161,105,.1);color:#38a169;"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="mini-stat-info"><h3 id="confirmedCount">0</h3><p>Confirmed</p></div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:rgba(237,137,54,.1);color:#ed8936;"><i class="fa-solid fa-clock"></i></div>
+                <div class="mini-stat-info"><h3 id="pendingCount">0</h3><p>Pending</p></div>
+            </div>
+            <div class="mini-stat">
+                <div class="mini-stat-icon" style="background:rgba(229,62,62,.1);color:#e53e3e;"><i class="fa-solid fa-circle-xmark"></i></div>
+                <div class="mini-stat-info"><h3 id="cancelledCount">0</h3><p>Cancelled</p></div>
+            </div>
+        </div>
+
+        <!-- Calendar Strip -->
+        <div class="card" style="margin-bottom:22px;">
+            <div class="section-heading"><i class="fa-solid fa-calendar-days"></i> May 2026</div>
+            <div class="calendar-strip" id="calendarStrip"></div>
+        </div>
+
+        <!-- Filter Bar + Book Button -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div class="filter-bar" style="margin:0;">
+                <input type="text" id="searchInput" placeholder="Search doctor / hospital...">
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <select id="monthFilter">
+                    <option value="">All Months</option>
+                    <option value="May">May</option>
+                    <option value="Jun">June</option>
+                    <option value="Apr">April</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('bookModal').classList.add('open')">
+                <i class="fa-solid fa-calendar-plus"></i> Book Appointment
+            </button>
+        </div>
+
+        <!-- Appointments List -->
+        <div id="apptList"></div>
+    </main>
+</div>
+
+<!-- Book Modal -->
+<div class="modal-overlay" id="bookModal">
+    <div class="modal-box">
+        <h3 style="margin-bottom:20px;"><i class="fa-solid fa-calendar-plus" style="color:var(--primary-color);"></i> Book New Appointment</h3>
+        <div class="form-group"><label>Select Doctor</label>
+            <select class="form-control" id="modalDoctor">
+                <option>Dr. Sarah Ahmed — Cardiologist ($80)</option>
+                <option>Dr. Karim Hossain — Neurologist ($100)</option>
+                <option>Dr. Priya Singh — Orthopedic ($90)</option>
+                <option>Dr. Rahman Khan — General Physician ($40)</option>
+                <option>Dr. Nadia Islam — Dermatologist ($60)</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Hospital</label>
+            <select class="form-control">
+                <option>City General Hospital</option>
+                <option>Apollo Medical Center</option>
+                <option>LifeCare Clinic</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <div class="form-group"><label>Date</label><input type="date" class="form-control" id="modalDate"></div>
+            <div class="form-group"><label>Time Slot</label>
+                <select class="form-control">
+                    <option>09:00 AM</option><option>09:30 AM</option><option>10:00 AM</option>
+                    <option>10:30 AM</option><option>11:00 AM</option><option>02:00 PM</option>
+                    <option>02:30 PM</option><option>03:00 PM</option><option>03:30 PM</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group"><label>Reason for Visit</label><input type="text" class="form-control" placeholder="Brief description..."></div>
+        <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-primary w-100" onclick="confirmBook()"><i class="fa-solid fa-check"></i> Confirm Booking</button>
+            <button class="btn btn-outline" onclick="document.getElementById('bookModal').classList.remove('open')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirm Modal -->
+<div class="modal-overlay" id="cancelModal">
+    <div class="modal-box" style="text-align:center;max-width:380px;">
+        <div style="font-size:3rem;margin-bottom:12px;">⚠️</div>
+        <h3>Cancel Appointment?</h3>
+        <p style="color:var(--text-secondary);margin:10px 0 22px;">This action cannot be undone. The doctor will be notified.</p>
+        <div style="display:flex;gap:10px;">
+            <button class="btn btn-danger w-100" onclick="doCancelAppt()"><i class="fa-solid fa-xmark"></i> Yes, Cancel</button>
+            <button class="btn btn-outline w-100" onclick="document.getElementById('cancelModal').classList.remove('open')">Keep It</button>
+        </div>
+    </div>
+</div>
+
+<button class="fab-sos" onclick="document.getElementById('bookModal').classList.add('open')" title="Book Appointment" style="background:var(--primary-color);">
+    <i class="fa-solid fa-calendar-plus"></i><span style="font-size:.55rem;">BOOK</span>
+</button>
+
+<script>
+// Theme
+const html=document.documentElement;
+const saved=localStorage.getItem('mpes-theme')||'light';
+html.setAttribute('data-theme',saved);
+document.querySelectorAll('.theme-btn').forEach(btn=>{
+    if(btn.dataset.setTheme===saved)btn.classList.add('active');
+    btn.addEventListener('click',()=>{
+        const t=btn.dataset.setTheme;
+        html.setAttribute('data-theme',t);
+        localStorage.setItem('mpes-theme',t);
+        document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+const sidebar=document.getElementById('sidebar'),mainWrapper=document.getElementById('mainWrapper');
+document.getElementById('sidebarToggle').addEventListener('click',()=>{
+    if(window.innerWidth<=768)sidebar.classList.toggle('mobile-open');
+    else{sidebar.classList.toggle('collapsed');mainWrapper.classList.toggle('sidebar-collapsed');}
+});
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+    o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+// Calendar Strip
+const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const strip=document.getElementById('calendarStrip');
+const hasDot=[3,10,14,20,24,27];
+for(let d=1;d<=31;d++){
+    const btn=document.createElement('div');
+    const date=new Date(2026,4,d);
+    btn.className='cal-day'+(d===16?' active':'');
+    btn.innerHTML=`<div class="cal-name">${days[date.getDay()]}</div><div class="cal-num">${d}</div>${hasDot.includes(d)?'<div class="cal-dot"></div>':'<div style="height:10px;"></div>'}`;
+    btn.addEventListener('click',()=>{document.querySelectorAll('.cal-day').forEach(c=>c.classList.remove('active'));btn.classList.add('active');});
+    strip.appendChild(btn);
+}
+
+// Appointments Data
+let APPTS=[];
+
+let cancelTarget=null;
+
+function statusBadge(s){
+    const map={confirmed:'success',pending:'warning',completed:'info',cancelled:'danger'};
+    return `<span class="badge-pill ${map[s]}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;
+}
+
+function renderAppts(list){
+    const container=document.getElementById('apptList');
+    if(!list.length){
+        container.innerHTML=`<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>No appointments found.</p></div>`;
+        return;
+    }
+    container.innerHTML=list.map(a=>`
+        <div class="appt-card ${a.status}" id="appt-${a.id}">
+            <div class="appt-date-box ${a.status}">
+                <div class="day">${a.day}</div>
+                <div class="mon">${a.mon}</div>
+            </div>
+            <img src="${a.img}" class="appt-doc-img" alt="${a.doctor}">
+            <div class="appt-details">
+                <h3>${a.doctor}</h3>
+                <p>${a.specialty} &nbsp;·&nbsp; ${a.hospital}</p>
+                <p style="margin-top:4px;"><i class="fa-solid fa-clock" style="color:var(--primary-color);"></i> ${a.time} &nbsp;&nbsp; <i class="fa-solid fa-hashtag" style="color:var(--primary-color);"></i> Serial ${a.serial} &nbsp;&nbsp; <strong>${a.fee}</strong></p>
+            </div>
+            <div class="appt-actions">
+                ${statusBadge(a.status)}
+                ${a.status==='confirmed'||a.status==='pending' ? `<button class="btn btn-outline btn-sm" onclick="document.getElementById('bookModal').classList.add('open')"><i class="fa-solid fa-pen"></i> Reschedule</button><button class="btn btn-sm" style="background:rgba(229,62,62,.1);color:#e53e3e;border:none;" onclick="openCancel(${a.id})"><i class="fa-solid fa-xmark"></i> Cancel</button>` : ''}
+                ${a.status==='completed' ? `<button class="btn btn-outline btn-sm"><i class="fa-solid fa-star"></i> Review</button><button class="btn btn-primary btn-sm" onclick="document.getElementById('bookModal').classList.add('open')"><i class="fa-solid fa-rotate-right"></i> Rebook</button>` : ''}
+            </div>
+        </div>`).join('');
+}
+
+function filterAppts(){
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const st=document.getElementById('statusFilter').value;
+    const mo=document.getElementById('monthFilter').value;
+    let list=APPTS.filter(a=>{
+        const matchQ=!q||a.doctor.toLowerCase().includes(q)||a.hospital.toLowerCase().includes(q);
+        const matchSt=!st||a.status===st;
+        const matchMo=!mo||a.mon===mo.toUpperCase().slice(0,3);
+        return matchQ&&matchSt&&matchMo;
+    });
+    renderAppts(list);
+}
+
+['searchInput','statusFilter','monthFilter'].forEach(id=>document.getElementById(id).addEventListener('input',filterAppts));
+
+function updateCounts(){
+    document.getElementById('totalCount').textContent=APPTS.length;
+    document.getElementById('confirmedCount').textContent=APPTS.filter(a=>a.status==='confirmed').length;
+    document.getElementById('pendingCount').textContent=APPTS.filter(a=>a.status==='pending').length;
+    document.getElementById('cancelledCount').textContent=APPTS.filter(a=>a.status==='cancelled').length;
+}
+
+function openCancel(id){cancelTarget=id;document.getElementById('cancelModal').classList.add('open');}
+
+async function doCancelAppt(){
+    if(cancelTarget){
+        const formData = new FormData();
+        formData.append('action', 'cancel_appointment');
+        formData.append('appointment_id', cancelTarget);
+        
+        try {
+            const res = await fetch('../api/crud.php', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ Appointment cancelled successfully.');
+                loadAppts();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            alert('Failed to cancel appointment.');
+        }
+    }
+    document.getElementById('cancelModal').classList.remove('open');
+    cancelTarget=null;
+}
+
+async function confirmBook() {
+    const docSelection = document.getElementById('modalDoctor').value;
+    const docName = docSelection.split('—')[0].trim();
+    const dateVal = document.getElementById('modalDate').value;
+    
+    // Default time based on standard booking values
+    const formData = new FormData();
+    formData.append('action', 'book_appointment');
+    
+    const doctorIds = {
+        "Dr. Sarah Ahmed": 3,
+        "Dr. Karim Hossain": 4,
+        "Dr. Priya Singh": 5,
+        "Dr. Rahman Khan": 6,
+        "Dr. Nadia Islam": 7
+    };
+    const doctor_id = doctorIds[docName] || 7;
+
+    if (!dateVal) {
+        alert("Please select a date.");
+        return;
+    }
+
+    formData.append('doctor_id', doctor_id);
+    formData.append('date', dateVal);
+    formData.append('time', '09:30:00'); // default time slot
+    formData.append('notes', 'Booked via Appointments Portal.');
+
+    try {
+        const res = await fetch('../api/crud.php', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            alert(`✅ Appointment Confirmed!\nSerial: ${data.serial}\nYou will receive an SMS confirmation.`);
+            document.getElementById('bookModal').classList.remove('open');
+            loadAppts();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (e) {
+        alert('Failed to connect to server.');
+    }
+}
+
+async function loadAppts() {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'get_appointments');
+        const res = await fetch('../api/crud.php', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            APPTS = data.appointments.map(appt => {
+                const date = new Date(appt.appointment_date);
+                return {
+                    id: parseInt(appt.id),
+                    doctor: appt.doctor_name,
+                    specialty: appt.doctor_specialty || 'Specialist',
+                    hospital: appt.hospital_name || 'City Hospital',
+                    day: String(date.getDate()).padStart(2, '0'),
+                    mon: months[date.getMonth()] || 'MAY',
+                    time: appt.appointment_time ? formatTime(appt.appointment_time) : '10:00 AM',
+                    serial: appt.serial_number || '#001',
+                    status: appt.status || 'pending',
+                    img: appt.profile_picture ? '../' + appt.profile_picture : 'https://i.pravatar.cc/52?img=10',
+                    fee: '$80'
+                };
+            });
+            filterAppts();
+            updateCounts();
+        }
+    } catch (e) {
+        console.error('Failed to load appointments:', e);
+    }
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return '10:00 AM';
+    const parts = timeStr.split(':');
+    let hours = parseInt(parts[0]);
+    const minutes = parts[1];
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${hours}:${minutes} ${ampm}`;
+}
+
+// Initial Dynamic Load
+loadAppts();
+</script>
+<script src="../assets/js/notifications.js"></script>
+</body>
+
