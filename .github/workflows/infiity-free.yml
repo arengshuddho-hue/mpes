@@ -1,0 +1,26 @@
+name: 🚀 Deploy to mpes.kesug.com
+
+on:
+  workflow_dispatch: #uncomment below to deploy on push database
+  push:
+    branches:
+      - main
+  
+jobs:
+  deploy:
+    name: 🎉 Deploy to mpes.kesug.com
+    runs on: ubuntu-latest
+    
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v6
+        
+      - name: Sync files via FTP
+        uses:  SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ftpupload.net #change if using another host
+          username: ${{ secrets.FTP_USERNAME}}
+          password: ${{secrets.FTP_PASSWORD}}
+          server-dir: /htdocs/ #replace with your current path
+          retries: 3
+          retryDelay: 10
